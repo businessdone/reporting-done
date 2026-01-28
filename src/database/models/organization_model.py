@@ -1,57 +1,44 @@
-from sqlalchemy import (
-    Table,
-    Column,
-    String,
-    DateTime,
-    BigInteger,
-    ForeignKey,
-    func,
-)
+"""Organization model mapping with reports-specific relationships.
+
+Uses bd-core's Organization model and organization_table, adding
+reports-specific relationships via configure_organization_mapping().
+"""
+
 from sqlalchemy.orm import relationship
 
-from database.models.mapper import mapper_registry
-from database.models.user_model import user_table
-from core.models import Organization
+from businessdone_core.database.models import Organization
+from businessdone_core.database.models.organization import organization_table
+from businessdone_core.database.models.user import user_table
+from businessdone_core.database.registry import mapper_registry
 
-organization_table = Table(
-    "organizations",
-    mapper_registry.metadata,
-    Column("id", String(26), primary_key=True),
-    Column("name", String(255), unique=True),
-    Column("subscription", String(50)),
-    Column("storage_limit", BigInteger()),
-    Column("status", BigInteger(), default=0),
-    Column(
-        "owner_id",
-        String(26),
-        ForeignKey(
-            "users.id",
-            use_alter=True,
-            deferrable=True,
-            initially="DEFERRED",
-        ),
-        nullable=False,
-    ),
-    Column("created_at", DateTime(timezone=True), server_default=func.now()),
-    Column("updated_at", DateTime(timezone=True), onupdate=func.now()),
-)
 
-mapper_registry.map_imperatively(
-    Organization,
-    organization_table,
-    properties={
-        "users": relationship(
-            "User",
-            back_populates="organization",
-            cascade="all, delete-orphan",
-            lazy="selectin",
-            foreign_keys=[user_table.c.organization_id],
-        ),
-        "projects": relationship(
-            "Project",
-            back_populates="organization",
-            cascade="all, delete-orphan",
-            lazy="selectin",
-        ),
-    },
-)
+def configure_organization_mapping() -> None:
+    """Configure Organization model with reports-specific relationships.
+
+    This function maps the Organization class to organization_table with
+    all relationships needed by reports-system:
+    - users: Users belonging to this organization (shared)
+    - projects: Projects in this organization (shared)
+    """
+    mapper_registry.map_imperatively(
+        Organization,
+        organization_table,
+        properties={
+            "users": relationship(
+                "User",
+                back_populates="organization",
+                cascade="all, delete-orphan",
+                lazy="selectin",
+                foreign_keys=[user_table.c.organization_id],
+            ),
+            "projects": relationship(
+                "Project",
+                back_populates="organization",
+                cascade="all, delete-orphan",
+                lazy="selectin",
+            ),
+        },
+    )
+
+
+__all__ = ["Organization", "organization_table", "configure_organization_mapping"]
