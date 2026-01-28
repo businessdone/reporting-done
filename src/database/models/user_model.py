@@ -10,7 +10,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from core.enums.roles import Roles
+from core.enums import Roles
 from core.models.user import User
 from database.models.mapper import mapper_registry
 

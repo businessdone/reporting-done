@@ -8,7 +8,7 @@ from core.models.log import Log
 from core.models.task import Task
 from core.models.user import User
 from core.models.project import Project
-from core.enums.premissions import Permissions
+from core.enums import Permissions
 from core.enums.task_status import TaskStatus
 from database.adapters.postgresql import PostgreSQL
 from core.models.project_user import ProjectUser

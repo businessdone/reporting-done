@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from ulid import ULID
 
-from core.enums.status import ProjectStatus
+from core.enums import ProjectStatus
 
 if TYPE_CHECKING:
     from core.models.task import Task

@@ -7,7 +7,7 @@ from backend.types.identifiers import UserId
 from backend.exceptions import InvalidCredentialsError
 from backend.protocols.session import ISession
 from core.models.user import User
-from core.enums.permissions import Permissions
+from core.enums import Permissions
 from database.repositories.repository import Repository
 
 

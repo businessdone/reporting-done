@@ -1,8 +1,19 @@
-from .flags import FlagBase
-from .roles import Roles
-from .status import UserStatus, OrganizationStatus, ProjectStatus, FileStatus
-from .permissions import Permissions, ProjectPermissions
-from .subscription import SubscriptionTier
+"""Re-export enums from bd-core for backward compatibility."""
+
+from businessdone_core.enums import (
+    FlagBase,
+    Permissions,
+    ProjectPermissions,
+    Roles,
+    UserStatus,
+    OrganizationStatus,
+    ProjectStatus,
+    FileStatus,
+    SubscriptionTier,
+)
+
+# Reports-specific enums (keep local)
+from .task_status import TaskStatus
 
 __all__ = [
     "FlagBase",
@@ -14,4 +25,5 @@ __all__ = [
     "ProjectStatus",
     "FileStatus",
     "SubscriptionTier",
+    "TaskStatus",
 ]
