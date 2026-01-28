@@ -22,19 +22,19 @@ from businessdone_core.database import Repository
 event_router = APIRouter(prefix="/event")
 
 
-def can_view_user_events(current_user: User, target_user_id: str, session) -> bool:
+async def can_view_user_events(current_user: User, target_user_id: str, session: AsyncSession) -> bool:
     if current_user.id == target_user_id:
         return True
     if is_admin(current_user):
         return True
-    
+
     project_user_repo = Repository(session, ProjectUser)
-    current_user_projects = project_user_repo.query(user_id=current_user.id)
+    current_user_projects = await project_user_repo.query(user_id=current_user.id)
     current_project_ids = {pu.project_id for pu in current_user_projects}
-    
-    target_user_projects = project_user_repo.query(user_id=target_user_id)
+
+    target_user_projects = await project_user_repo.query(user_id=target_user_id)
     target_project_ids = {pu.project_id for pu in target_user_projects}
-    
+
     return bool(current_project_ids & target_project_ids)
 
 _event_service = EventService(PaginationService())
@@ -81,17 +81,17 @@ async def create_event_endpoint(
         start_time=body.start_time,
         end_time=body.end_time,
     )
-    
-    result = _event_service.create(dto, current_user.id, session)
-    
+
+    result = await _event_service.create(dto, current_user.id, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
-    
+
     return result.value
 
 
 @event_router.get("/", response_model=PaginatedEventResponse)
-def get_all_events_endpoint(
+async def get_all_events_endpoint(
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
     event_type: str | None = Query(None),
@@ -99,16 +99,16 @@ def get_all_events_endpoint(
     current_user: User = Depends(get_current_user),
 ):
     pagination = PaginationParams(page=page, per_page=limit)
-    
+
     filters = {}
     if event_type:
         filters["event_type"] = event_type
-    
+
     if is_admin(current_user):
-        result = _event_service.list_all(pagination, session, **filters)
+        result = await _event_service.list_all(pagination, session, **filters)
     else:
-        result = _event_service.list_for_user(current_user.id, pagination, session, **filters)
-    
+        result = await _event_service.list_for_user(current_user.id, pagination, session, **filters)
+
     return PaginatedEventResponse(
         items=result.items,
         total=result.total,
@@ -120,7 +120,7 @@ def get_all_events_endpoint(
 
 
 @event_router.get("/my", response_model=PaginatedEventResponse)
-def get_my_events_endpoint(
+async def get_my_events_endpoint(
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
     year: int | None = Query(None, ge=2000, le=2100),
@@ -129,9 +129,9 @@ def get_my_events_endpoint(
     current_user: User = Depends(get_current_user),
 ):
     pagination = PaginationParams(page=page, per_page=limit)
-    
+
     if year and month:
-        events = _event_service.get_user_events_for_month(
+        events = await _event_service.get_user_events_for_month(
             current_user.id, year, month, session
         )
         return PaginatedEventResponse(
@@ -142,9 +142,9 @@ def get_my_events_endpoint(
             has_next=False,
             has_prev=False,
         )
-    
-    result = _event_service.list_for_user(current_user.id, pagination, session)
-    
+
+    result = await _event_service.list_for_user(current_user.id, pagination, session)
+
     return PaginatedEventResponse(
         items=result.items,
         total=result.total,
@@ -156,7 +156,7 @@ def get_my_events_endpoint(
 
 
 @event_router.get("/user/{user_id}", response_model=PaginatedEventResponse)
-def get_user_events_endpoint(
+async def get_user_events_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
@@ -165,14 +165,13 @@ def get_user_events_endpoint(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    with session as s:
-        if not can_view_user_events(current_user, user_id, s):
-            raise HTTPException(status_code=403, detail="Not authorized to view this user's events")
-    
+    if not await can_view_user_events(current_user, user_id, session):
+        raise HTTPException(status_code=403, detail="Not authorized to view this user's events")
+
     pagination = PaginationParams(page=page, per_page=limit)
-    
+
     if year and month:
-        events = _event_service.get_user_events_for_month(user_id, year, month, session)
+        events = await _event_service.get_user_events_for_month(user_id, year, month, session)
         return PaginatedEventResponse(
             items=events,
             total=len(events),
@@ -181,9 +180,9 @@ def get_user_events_endpoint(
             has_next=False,
             has_prev=False,
         )
-    
-    result = _event_service.list_for_user(user_id, pagination, session)
-    
+
+    result = await _event_service.list_for_user(user_id, pagination, session)
+
     return PaginatedEventResponse(
         items=result.items,
         total=result.total,
@@ -195,21 +194,21 @@ def get_user_events_endpoint(
 
 
 @event_router.get("/{event_id}", response_model=EventDTO)
-def get_event_endpoint(
+async def get_event_endpoint(
     event_id: str,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    result = _event_service.get_by_id(event_id, session)
-    
+    result = await _event_service.get_by_id(event_id, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
-    
+
     event = result.value
-    
+
     if not is_admin(current_user) and event.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to view this event")
-    
+
     return event
 
 
@@ -228,18 +227,18 @@ async def update_event_endpoint(
         start_time=body.start_time,
         end_time=body.end_time,
     )
-    
-    result = _event_service.update(
+
+    result = await _event_service.update(
         event_id,
         dto,
         current_user.id,
         is_admin(current_user),
         session,
     )
-    
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
-    
+
     return result.value
 
 
@@ -249,13 +248,12 @@ async def delete_event_endpoint(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    result = _event_service.delete(
+    result = await _event_service.delete(
         event_id,
         current_user.id,
         is_admin(current_user),
         session,
     )
-    
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
-

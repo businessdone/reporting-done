@@ -60,12 +60,12 @@ async def create_user_endpoint(
         password=body.password,
         permissions=body.permissions,
     )
-    
-    result = user_service.create(dto, session)
-    
+
+    result = await user_service.create(dto, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
-    
+
     return result.value
 
 
@@ -82,16 +82,16 @@ async def get_current_user_details(
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
-    result = user_service.get_by_id(current_user.id, session)
-    
+    result = await user_service.get_by_id(current_user.id, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
-    
+
     return result.value
 
 
 @user_router.get("/", response_model=PaginatedResponse)
-def get_all_users_endpoint(
+async def get_all_users_endpoint(
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
     sort: str | None = Query(None),
@@ -106,9 +106,9 @@ def get_all_users_endpoint(
         sort_by=sort,
         sort_order=order,
     )
-    
-    result = user_service.list_all(pagination, session)
-    
+
+    result = await user_service.list_all(pagination, session)
+
     return PaginatedResponse(
         items=result.items,
         total=result.total,
@@ -120,7 +120,7 @@ def get_all_users_endpoint(
 
 
 @user_router.get("/{user_id}", response_model=UserDTO)
-def get_user_endpoint(
+async def get_user_endpoint(
     user_id: str,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
@@ -128,17 +128,17 @@ def get_user_endpoint(
 ):
     if current_user.id != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Not authorized to view this profile")
-    
-    result = user_service.get_by_id(user_id, session)
-    
+
+    result = await user_service.get_by_id(user_id, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
-    
+
     return result.value
 
 
 @user_router.put("/{user_id}", response_model=UserDTO)
-def update_user_endpoint(
+async def update_user_endpoint(
     user_id: str,
     body: UserUpdateRequest,
     session: AsyncSession = Depends(get_session),
@@ -147,18 +147,18 @@ def update_user_endpoint(
 ):
     if current_user.id != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Not authorized to update this profile")
-    
+
     dto = UserUpdateDTO(
         email=body.email,
         full_name=body.full_name,
         permissions=body.permissions if is_admin(current_user) else None,
     )
-    
-    result = user_service.update(user_id, dto, session)
-    
+
+    result = await user_service.update(user_id, dto, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
-    
+
     return result.value
 
 
@@ -169,14 +169,14 @@ async def delete_user_endpoint(
     current_user: User = Depends(require_admin),
     user_service: UserService = Depends(get_user_service),
 ):
-    result = user_service.delete(user_id, current_user.id, session)
-    
+    result = await user_service.delete(user_id, current_user.id, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
 
 
 @user_router.get("/{user_id}/projects", response_model=PaginatedResponse)
-def get_user_projects_endpoint(
+async def get_user_projects_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
@@ -186,10 +186,10 @@ def get_user_projects_endpoint(
 ):
     if current_user.id != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
-    
+
     pagination = PaginationParams(page=page, per_page=limit)
-    result = user_service.get_user_projects(user_id, pagination, session)
-    
+    result = await user_service.get_user_projects(user_id, pagination, session)
+
     return PaginatedResponse(
         items=result.items,
         total=result.total,
@@ -201,7 +201,7 @@ def get_user_projects_endpoint(
 
 
 @user_router.get("/{user_id}/tasks")
-def get_user_tasks_endpoint(
+async def get_user_tasks_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
@@ -211,10 +211,10 @@ def get_user_tasks_endpoint(
 ):
     if current_user.id != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
-    
+
     pagination = PaginationParams(page=page, per_page=limit)
-    result = user_service.get_user_tasks(user_id, pagination, session)
-    
+    result = await user_service.get_user_tasks(user_id, pagination, session)
+
     return {
         "items": result.items,
         "total": result.total,
@@ -226,7 +226,7 @@ def get_user_tasks_endpoint(
 
 
 @user_router.get("/{user_id}/logs")
-def get_user_logs_endpoint(
+async def get_user_logs_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
@@ -236,10 +236,10 @@ def get_user_logs_endpoint(
 ):
     if current_user.id != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
-    
+
     pagination = PaginationParams(page=page, per_page=limit)
-    result = user_service.get_user_logs(user_id, pagination, session)
-    
+    result = await user_service.get_user_logs(user_id, pagination, session)
+
     return {
         "items": result.items,
         "total": result.total,

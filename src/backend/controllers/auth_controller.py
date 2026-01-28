@@ -49,16 +49,16 @@ async def login(
     session: AsyncSession = Depends(get_session),
 ):
     from backend.types.auth import AuthCredentials
-    
+
     credentials = AuthCredentials(email=body.email, password=body.password)
-    result = _auth_service.authenticate(credentials, session)
-    
+    result = await _auth_service.authenticate(credentials, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=401, detail=result.error)
-    
+
     user = result.value
     request.session["user_id"] = user.user_id
-    
+
     return LoginResponse(
         message="Login successful",
         user_id=user.user_id,
@@ -83,18 +83,18 @@ async def get_current_user_info(
     session: AsyncSession = Depends(get_session),
 ):
     user_id = request.session.get("user_id")
-    
+
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    result = _auth_service.get_user_by_id(user_id, session)
-    
+
+    result = await _auth_service.get_user_by_id(user_id, session)
+
     if isinstance(result, Err):
         request.session.clear()
         raise HTTPException(status_code=401, detail="Session expired")
-    
+
     user = result.value
-    
+
     return CurrentUserResponse(
         user_id=user.user_id,
         email=user.email,
@@ -113,14 +113,13 @@ async def get_csrf_token(request: Request):
 @auth_router.get("/check")
 async def check_auth(request: Request, session: AsyncSession = Depends(get_session)):
     user_id = request.session.get("user_id")
-    
+
     if not user_id:
         return {"authenticated": False}
-    
-    result = _auth_service.get_user_by_id(user_id, session)
-    
+
+    result = await _auth_service.get_user_by_id(user_id, session)
+
     if isinstance(result, Err):
         return {"authenticated": False}
-    
-    return {"authenticated": True, "is_admin": result.value.is_admin}
 
+    return {"authenticated": True, "is_admin": result.value.is_admin}

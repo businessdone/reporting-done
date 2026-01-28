@@ -12,11 +12,11 @@ from backend.models.calendar_page import (
 from businessdone_core.database import Repository
 
 
-def get_user_availability_data(
+async def get_user_availability_data(
     session: AsyncSession, user_id: str, year: int, month: int
 ) -> PydanticBackendUserCalendarResponse:
     user_repo = Repository(session, User)
-    user = user_repo.get(user_id)
+    user = await user_repo.get(user_id)
     if not user:
         raise ValueError(f"User with id {user_id} not found")
 
@@ -26,7 +26,7 @@ def get_user_availability_data(
 
     office_availability_repo = Repository(session, OfficeAvailability)
     availability_entries: List[OfficeAvailability] = (
-        office_availability_repo.query(
+        await office_availability_repo.query(
             user_id=user_id,
             day__gte=start_date,
             day__lte=end_date,
@@ -59,7 +59,7 @@ def get_user_availability_data(
         current_day += timedelta(days=1)
 
     task_repo = Repository(session, Task)
-    user_tasks_orm: List[Task] = task_repo.query(user_id=user_id)
+    user_tasks_orm: List[Task] = await task_repo.query(user_id=user_id)
 
     task_response_models: List[PydanticBackendTask] = []
     for task_orm in user_tasks_orm:
@@ -83,14 +83,14 @@ def get_user_availability_data(
     )
 
 
-def update_single_day_availability(
+async def update_single_day_availability(
     session: AsyncSession,
     user_id: str,
     day_str: str,
     status: str,
 ) -> PydanticBackendDailyAvailability:
     user_repo = Repository(session, User)
-    user = user_repo.get(user_id)
+    user = await user_repo.get(user_id)
     if not user:
         raise ValueError(f"User with id {user_id} not found")
 
@@ -119,7 +119,7 @@ def update_single_day_availability(
             )
 
     office_availability_repo = Repository(session, OfficeAvailability)
-    existing_entries = office_availability_repo.query(
+    existing_entries = await office_availability_repo.query(
         user_id=user_id,
         day=target_date,
     )
@@ -140,7 +140,7 @@ def update_single_day_availability(
             availability_entry = OfficeAvailability(
                 user_id=user_id, day=target_date, present=is_present
             )
-            office_availability_repo.create(availability_entry)
+            await office_availability_repo.create(availability_entry)
 
         if is_present:
             final_status_str = "Office"
@@ -149,7 +149,7 @@ def update_single_day_availability(
             if status.lower() == "off":
                 final_status_str = "Off"
 
-    session.commit()
+    await session.commit()
 
     if (
         not availability_entry
@@ -173,7 +173,7 @@ def update_single_day_availability(
     )
 
 
-def batch_update_monthly_availability(
+async def batch_update_monthly_availability(
     session: AsyncSession,
     user_id: str,
     year: int,
@@ -181,7 +181,7 @@ def batch_update_monthly_availability(
     office_dates: List[str],
 ) -> PydanticBackendUserCalendarResponse:
     user_repo = Repository(session, User)
-    user = user_repo.get(user_id)
+    user = await user_repo.get(user_id)
     if not user:
         raise ValueError(f"User with id {user_id} not found")
 
@@ -195,7 +195,7 @@ def batch_update_monthly_availability(
     end_date = date(year, month, num_days_in_month)
 
     existing_entries_list: List[OfficeAvailability] = (
-        office_availability_repo.query(
+        await office_availability_repo.query(
             user_id=user_id,
             day__gte=start_date,
             day__lte=end_date,
@@ -225,10 +225,10 @@ def batch_update_monthly_availability(
                 day=current_processing_day,
                 present=is_present_for_day,
             )
-            office_availability_repo.create(new_entry)
+            await office_availability_repo.create(new_entry)
 
         current_processing_day += timedelta(days=1)
 
-    session.commit()
+    await session.commit()
 
-    return get_user_availability_data(session, user_id, year, month)
+    return await get_user_availability_data(session, user_id, year, month)

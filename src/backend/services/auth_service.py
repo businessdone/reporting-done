@@ -13,69 +13,66 @@ from businessdone_core.database import Repository
 
 class AuthService:
     __slots__ = ("_hasher",)
-    
+
     def __init__(self) -> None:
         self._hasher = PasswordHasher()
-    
-    def authenticate(
+
+    async def authenticate(
         self,
         credentials: AuthCredentials,
         session: AsyncSession,
     ) -> Result[AuthenticatedUser, str]:
-        with session as s:
-            repo = Repository(s, User)
-            users = repo.query(email=credentials.email)
-            
-            if not users:
-                return Err("Invalid email or password")
-            
-            user = users[0]
-            
-            if not self.verify_password(credentials.password, user.password):
-                return Err("Invalid email or password")
-            
-            is_admin = Permissions(user.permissions) == Permissions.ADMIN
-            
-            return Ok(AuthenticatedUser(
-                user_id=UserId(user.id),
-                email=user.email,
-                full_name=user.full_name,
-                permissions=user.permissions,
-                is_admin=is_admin,
-            ))
-    
-    def get_user_by_id(
+        repo = Repository(session, User)
+        users = await repo.query(email=credentials.email)
+
+        if not users:
+            return Err("Invalid email or password")
+
+        user = users[0]
+
+        if not self.verify_password(credentials.password, user.password):
+            return Err("Invalid email or password")
+
+        is_admin = Permissions(user.permissions) == Permissions.ADMIN
+
+        return Ok(AuthenticatedUser(
+            user_id=UserId(user.id),
+            email=user.email,
+            full_name=user.full_name,
+            permissions=user.permissions,
+            is_admin=is_admin,
+        ))
+
+    async def get_user_by_id(
         self,
         user_id: str,
         session: AsyncSession,
     ) -> Result[AuthenticatedUser, str]:
-        with session as s:
-            repo = Repository(s, User)
-            user = repo.get(user_id)
-            
-            if not user:
-                return Err("User not found")
-            
-            is_admin = Permissions(user.permissions) == Permissions.ADMIN
-            
-            return Ok(AuthenticatedUser(
-                user_id=UserId(user.id),
-                email=user.email,
-                full_name=user.full_name,
-                permissions=user.permissions,
-                is_admin=is_admin,
-            ))
-    
+        repo = Repository(session, User)
+        user = await repo.get(user_id)
+
+        if not user:
+            return Err("User not found")
+
+        is_admin = Permissions(user.permissions) == Permissions.ADMIN
+
+        return Ok(AuthenticatedUser(
+            user_id=UserId(user.id),
+            email=user.email,
+            full_name=user.full_name,
+            permissions=user.permissions,
+            is_admin=is_admin,
+        ))
+
     def hash_password(self, password: str) -> str:
         return self._hasher.hash(password)
-    
+
     def verify_password(self, password: str, hashed: str) -> bool:
         try:
             self._hasher.verify(hashed, password)
             return True
         except VerifyMismatchError:
             return False
-    
+
     def needs_rehash(self, hashed: str) -> bool:
         return self._hasher.check_needs_rehash(hashed)
-

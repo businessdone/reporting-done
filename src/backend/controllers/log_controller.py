@@ -57,17 +57,17 @@ async def create_log_endpoint(
         hours_spent=body.hours_spent,
         task_status=body.task_status,
     )
-    
-    result = log_service.create(dto, current_user.id, session)
-    
+
+    result = await log_service.create(dto, current_user.id, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
-    
+
     return result.value
 
 
 @log_router.get("/", response_model=PaginatedLogsResponse)
-def get_all_logs_endpoint(
+async def get_all_logs_endpoint(
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
     sort: str | None = Query(None),
@@ -108,12 +108,12 @@ def get_all_logs_endpoint(
         filters["hours_spent__gte"] = hours_min
     if hours_max is not None:
         filters["hours_spent__lte"] = hours_max
-    
+
     if is_admin(current_user):
-        result = log_service.list_all(pagination, session, **filters)
+        result = await log_service.list_all(pagination, session, **filters)
     else:
-        result = log_service.list_for_user(current_user.id, pagination, session, **filters)
-    
+        result = await log_service.list_for_user(current_user.id, pagination, session, **filters)
+
     return PaginatedLogsResponse(
         items=result.items,
         total=result.total,
@@ -125,16 +125,16 @@ def get_all_logs_endpoint(
 
 
 @log_router.get("/export", response_class=StreamingResponse)
-def export_logs_csv(
+async def export_logs_csv(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     log_service: LogService = Depends(get_log_service),
 ):
-    result = log_service.export_to_csv(session)
-    
+    result = await log_service.export_to_csv(session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=500, detail=result.error)
-    
+
     return StreamingResponse(
         iter([result.value]),
         media_type="text/csv",
@@ -143,22 +143,22 @@ def export_logs_csv(
 
 
 @log_router.get("/{log_id}", response_model=LogDTO)
-def get_log_endpoint(
+async def get_log_endpoint(
     log_id: str,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     log_service: LogService = Depends(get_log_service),
 ):
-    result = log_service.get_by_id(log_id, session)
-    
+    result = await log_service.get_by_id(log_id, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
-    
+
     log = result.value
-    
+
     if not is_admin(current_user) and log.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Access forbidden")
-    
+
     return log
 
 
@@ -175,18 +175,18 @@ async def update_log_endpoint(
         hours_spent=body.hours_spent,
         task_status=body.task_status,
     )
-    
-    result = log_service.update(
+
+    result = await log_service.update(
         log_id,
         dto,
         current_user.id,
         is_admin(current_user),
         session,
     )
-    
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
-    
+
     return result.value
 
 
@@ -197,12 +197,12 @@ async def delete_log_endpoint(
     current_user: User = Depends(get_current_user),
     log_service: LogService = Depends(get_log_service),
 ):
-    result = log_service.delete(
+    result = await log_service.delete(
         log_id,
         current_user.id,
         is_admin(current_user),
         session,
     )
-    
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
