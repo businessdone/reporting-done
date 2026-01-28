@@ -16,7 +16,7 @@ from backend.dependencies import (
 )
 from core.models import User
 from core.models.project_user import ProjectUser
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 event_router = APIRouter(prefix="/event")

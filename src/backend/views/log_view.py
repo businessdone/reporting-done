@@ -6,7 +6,7 @@ from loguru import logger
 
 from backend.models import LogCreateModel, LogResponseModel
 from core.models import Log, Task, User, Project
-from database.models import log_mapper  # noqa F401
+# Note: Log mapping is configured at import time in log_mapper
 from core.enums.task_status import TaskStatus
 from backend.utils.templates import templates
 from backend.utils.pagination import calculate_pagination
@@ -14,7 +14,7 @@ from backend.models.pagination import Pagination
 from backend.utils.send_emails import send_email_to_user
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies.db_session import get_session
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 def create_log(log: LogCreateModel, session: AsyncSession) -> LogResponseModel:

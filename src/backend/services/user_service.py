@@ -19,7 +19,7 @@ from backend.services.pagination_service import PaginationService
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, Task, Log, Project
 from core.models.project_user import ProjectUser
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 class UserService:

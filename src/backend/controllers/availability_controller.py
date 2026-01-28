@@ -17,7 +17,7 @@ from backend.dependencies import (
 )
 from backend.utils.xlsx_parser import FileParser, IFileParser
 from core.models import User, OfficeAvailability
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 availability_router = APIRouter(prefix="/availability")

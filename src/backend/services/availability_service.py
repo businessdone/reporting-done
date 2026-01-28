@@ -6,7 +6,7 @@ from backend.types.result import Result, Ok, Err
 from backend.types.dtos import AvailabilityDTO, MonthlyAvailabilityDTO, UserDTO, DayAvailabilityStatus
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, OfficeAvailability
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 class AvailabilityService:

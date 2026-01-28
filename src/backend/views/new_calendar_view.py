@@ -9,7 +9,7 @@ from backend.models.calendar_page import (
     PydanticBackendDailyAvailability,
     PydanticBackendUserCalendarResponse,
 )
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 def get_new_calendar_data_for_user(

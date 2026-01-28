@@ -1,10 +1,3 @@
-from backend.protocols.repository import (
-    IReadRepository,
-    IWriteRepository,
-    IRepository,
-    IQueryable,
-    ICountable,
-)
 from backend.protocols.services import (
     IUserService,
     IProjectService,
@@ -21,11 +14,6 @@ from backend.protocols.validators import (
 from backend.protocols.pagination import IPaginator, IPaginatedResult
 
 __all__ = [
-    "IReadRepository",
-    "IWriteRepository",
-    "IRepository",
-    "IQueryable",
-    "ICountable",
     "IUserService",
     "IProjectService",
     "ITaskService",

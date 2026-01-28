@@ -4,14 +4,14 @@ from ulid import ULID
 from loguru import logger
 
 from backend.models import ProjectCreateModel, ProjectResponseModel
-import database.models.project_mapper  # noqa: F401
+# Note: Project mapping is configured at startup via configure_mappings()
 from core.models import Task, User, Project
 from backend.models.models import TaskResponseModel, UserResponseModel
 from backend.utils.pagination import calculate_pagination
 from core.models.project_user import ProjectUser
 from backend.models.pagination import Pagination
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 def create_project(

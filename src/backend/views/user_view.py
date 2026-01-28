@@ -10,13 +10,13 @@ from backend.models import (
     UserProfileUpdateModel,
 )
 from core.models import Log, Task, User, Project
-from database.models import user_table  # noqa F401 - Import to register User mapping
+# Note: User mapping is configured at startup via configure_mappings()
 from backend.models.models import LogResponseModel, TaskResponseModel
 from backend.utils.pagination import calculate_pagination
 from core.models.project_user import ProjectUser
 from backend.models.pagination import Pagination
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 def create_user(user: UserCreateModel, session: AsyncSession) -> UserResponseModel:

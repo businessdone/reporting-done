@@ -14,7 +14,7 @@ from backend.types.result import Ok, Err, Result
 from backend.types.pagination import PaginatedResult, PaginationParams
 from core.models.project_user import ProjectUser
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 from backend.services.pagination_service import PaginationService
 
 

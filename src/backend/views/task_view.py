@@ -3,12 +3,12 @@ import datetime
 
 from backend.models import TaskCreateModel, TaskResponseModel
 from core.models import Log, Task, User, Project
-from database.models import task_mapper  # noqa F401
+# Note: Task mapping is configured at import time in task_mapper
 from backend.models.models import LogResponseModel
 from backend.utils.pagination import calculate_pagination
 from backend.models.pagination import Pagination
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 def create_task(task: TaskCreateModel, session: AsyncSession) -> TaskResponseModel:

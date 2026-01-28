@@ -8,7 +8,7 @@ from backend.exceptions import InvalidCredentialsError
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User
 from core.enums import Permissions
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 class AuthService:

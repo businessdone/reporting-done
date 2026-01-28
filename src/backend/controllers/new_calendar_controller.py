@@ -17,7 +17,7 @@ from backend.dependencies import (
 )
 from core.models import User, OfficeAvailability
 from core.models.project_user import ProjectUser
-from database.repositories.repository import Repository
+from businessdone_core.database import Repository
 
 
 new_calendar_router = APIRouter(prefix="/calendar")
