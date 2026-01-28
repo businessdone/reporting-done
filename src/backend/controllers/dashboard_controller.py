@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter, HTTPException
+from fastapi import Depends, APIRouter
 from pydantic import BaseModel
 
 from backend.services import ProjectService, TaskService, LogService
@@ -37,17 +37,16 @@ async def get_dashboard_summary(
     user_is_admin = is_admin(current_user)
     no_limit_pagination = PaginationParams(page=1, per_page=10000)
 
-    # NOTE: project_service is not yet async - will be converted in a future task
     if user_is_admin:
-        projects_result = project_service.list_all(
+        projects_result = await project_service.list_all(
             no_limit_pagination,
             session,
             archived=False,
         )
         active_projects_count = projects_result.total
     else:
-        projects_result = project_service.list_for_user(
-            current_user.id,
+        projects_result = await project_service.list_for_user(
+            str(current_user.id),
             no_limit_pagination,
             session,
             archived=False,
@@ -56,12 +55,11 @@ async def get_dashboard_summary(
 
     done_statuses = {TaskStatus.DONE.value, TaskStatus.CANCELLED.value}
 
-    # TaskService is now async
     if user_is_admin:
         tasks_result = await task_service.list_all(no_limit_pagination, session)
     else:
         tasks_result = await task_service.list_for_user(
-            current_user.id,
+            str(current_user.id),
             no_limit_pagination,
             session,
         )
@@ -71,12 +69,11 @@ async def get_dashboard_summary(
         if t.status and t.status not in done_statuses
     )
 
-    # NOTE: log_service is not yet async - will be converted in a future task
     if user_is_admin:
-        logs_result = log_service.list_all(no_limit_pagination, session)
+        logs_result = await log_service.list_all(no_limit_pagination, session)
     else:
-        logs_result = log_service.list_for_user(
-            current_user.id,
+        logs_result = await log_service.list_for_user(
+            str(current_user.id),
             no_limit_pagination,
             session,
         )

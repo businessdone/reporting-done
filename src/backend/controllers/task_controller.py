@@ -70,10 +70,10 @@ async def create_task_endpoint(
 
     if (
         assigned_user_id
-        and assigned_user_id != current_user.id
+        and assigned_user_id != str(current_user.id)
         and not is_admin(current_user)
     ):
-        assigned_user_id = current_user.id
+        assigned_user_id = str(current_user.id)
 
     dto = TaskCreateDTO(
         project_id=body.project_id,
@@ -84,7 +84,7 @@ async def create_task_endpoint(
         user_id=assigned_user_id,
     )
 
-    result = await task_service.create(dto, current_user.id, session)
+    result = await task_service.create(dto, str(current_user.id), session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
@@ -141,7 +141,7 @@ async def get_all_tasks_endpoint(
         result = await task_service.list_all(pagination, session, **filters)
     else:
         result = await task_service.list_for_user(
-            current_user.id, pagination, session, **filters
+            str(current_user.id), pagination, session, **filters
         )
 
     if hours_progress:
@@ -240,7 +240,7 @@ async def get_task_endpoint(
 
     task = result.value
 
-    if not is_admin(current_user) and task.user_id != current_user.id:
+    if not is_admin(current_user) and task.user_id != str(current_user.id):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     return task
@@ -266,7 +266,7 @@ async def update_task_endpoint(
     result = await task_service.update(
         task_id,
         dto,
-        current_user.id,
+        str(current_user.id),
         is_admin(current_user),
         session,
     )
@@ -345,7 +345,7 @@ async def get_tasks_by_user_endpoint(
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     pagination = PaginationParams(page=page, per_page=limit)

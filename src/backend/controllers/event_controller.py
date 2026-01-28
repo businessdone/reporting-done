@@ -1,4 +1,5 @@
 from typing import Sequence
+from datetime import date, time
 
 from fastapi import Query, Depends, APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -16,20 +17,20 @@ from backend.dependencies import (
 )
 from core.models import User
 from core.models.project_user import ProjectUser
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 event_router = APIRouter(prefix="/event")
 
 
 async def can_view_user_events(current_user: User, target_user_id: str, session: AsyncSession) -> bool:
-    if current_user.id == target_user_id:
+    if str(current_user.id) == target_user_id:
         return True
     if is_admin(current_user):
         return True
 
     project_user_repo = Repository(session, ProjectUser)
-    current_user_projects = await project_user_repo.query(user_id=current_user.id)
+    current_user_projects = await project_user_repo.query(user_id=str(current_user.id))
     current_project_ids = {pu.project_id for pu in current_user_projects}
 
     target_user_projects = await project_user_repo.query(user_id=target_user_id)
@@ -67,6 +68,24 @@ class PaginatedEventResponse(BaseModel):
     has_prev: bool
 
 
+def _parse_date(date_str: str) -> date:
+    """Parse date string in YYYY-MM-DD format."""
+    try:
+        return date.fromisoformat(date_str)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+
+
+def _parse_time(time_str: str | None) -> time | None:
+    """Parse time string in HH:MM format."""
+    if time_str is None:
+        return None
+    try:
+        return time.fromisoformat(time_str)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM")
+
+
 @event_router.post("/", response_model=EventDTO)
 async def create_event_endpoint(
     body: EventCreateRequest,
@@ -77,12 +96,12 @@ async def create_event_endpoint(
         title=body.title,
         description=body.description,
         event_type=body.event_type,
-        event_date=body.event_date,
-        start_time=body.start_time,
-        end_time=body.end_time,
+        event_date=_parse_date(body.event_date),
+        start_time=_parse_time(body.start_time),
+        end_time=_parse_time(body.end_time),
     )
 
-    result = await _event_service.create(dto, current_user.id, session)
+    result = await _event_service.create(dto, str(current_user.id), session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
@@ -107,7 +126,7 @@ async def get_all_events_endpoint(
     if is_admin(current_user):
         result = await _event_service.list_all(pagination, session, **filters)
     else:
-        result = await _event_service.list_for_user(current_user.id, pagination, session, **filters)
+        result = await _event_service.list_for_user(str(current_user.id), pagination, session, **filters)
 
     return PaginatedEventResponse(
         items=result.items,
@@ -132,7 +151,7 @@ async def get_my_events_endpoint(
 
     if year and month:
         events = await _event_service.get_user_events_for_month(
-            current_user.id, year, month, session
+            str(current_user.id), year, month, session
         )
         return PaginatedEventResponse(
             items=events,
@@ -143,7 +162,7 @@ async def get_my_events_endpoint(
             has_prev=False,
         )
 
-    result = await _event_service.list_for_user(current_user.id, pagination, session)
+    result = await _event_service.list_for_user(str(current_user.id), pagination, session)
 
     return PaginatedEventResponse(
         items=result.items,
@@ -206,7 +225,7 @@ async def get_event_endpoint(
 
     event = result.value
 
-    if not is_admin(current_user) and event.user_id != current_user.id:
+    if not is_admin(current_user) and event.user_id != str(current_user.id):
         raise HTTPException(status_code=403, detail="Not authorized to view this event")
 
     return event
@@ -223,15 +242,15 @@ async def update_event_endpoint(
         title=body.title,
         description=body.description,
         event_type=body.event_type,
-        event_date=body.event_date,
-        start_time=body.start_time,
-        end_time=body.end_time,
+        event_date=_parse_date(body.event_date) if body.event_date else None,
+        start_time=_parse_time(body.start_time),
+        end_time=_parse_time(body.end_time),
     )
 
     result = await _event_service.update(
         event_id,
         dto,
-        current_user.id,
+        str(current_user.id),
         is_admin(current_user),
         session,
     )
@@ -250,7 +269,7 @@ async def delete_event_endpoint(
 ):
     result = await _event_service.delete(
         event_id,
-        current_user.id,
+        str(current_user.id),
         is_admin(current_user),
         session,
     )

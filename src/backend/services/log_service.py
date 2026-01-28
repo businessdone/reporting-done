@@ -12,7 +12,7 @@ from backend.services.pagination_service import PaginationService
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, Task, Log
 from core.enums.task_status import TaskStatus
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 class LogService:
@@ -56,7 +56,7 @@ class LogService:
             task_id=task.id,
             task_name=task.title,
             description=data.description,
-            user_id=user.id,
+            user_id=str(user.id),
             user_name=user.full_name,
             project_id=task.project_id,
             project_name=task.project_name,

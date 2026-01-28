@@ -9,17 +9,17 @@ from backend.models.calendar_page import (
     PydanticBackendDailyAvailability,
     PydanticBackendUserCalendarResponse,
 )
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
-def get_new_calendar_data_for_user(
+async def get_new_calendar_data_for_user(
     session: AsyncSession,
     user_id: str,
     year: int,
     month: int,
 ) -> PydanticBackendUserCalendarResponse:
     user_repo = Repository(session, User)
-    user = user_repo.get(user_id)
+    user = await user_repo.get(user_id)
     if not user:
         raise ValueError(f"User with id {user_id} not found")
 
@@ -29,7 +29,7 @@ def get_new_calendar_data_for_user(
     month_end_date = date(year, month, num_days_in_month)
 
     office_availability_repo = Repository(session, OfficeAvailability)
-    db_availabilities: List[OfficeAvailability] = office_availability_repo.query(
+    db_availabilities: List[OfficeAvailability] = await office_availability_repo.query(
         user_id=user_id,
         day__gte=month_start_date,
         day__lte=month_end_date,
@@ -65,7 +65,7 @@ def get_new_calendar_data_for_user(
     task_repo = Repository(session, Task)
     start_date = datetime(year, month, 1, 0, 0, 0)
     end_date = datetime(year, month, num_days_in_month, 23, 59, 59)
-    user_tasks: List[Task] = task_repo.query(
+    user_tasks: List[Task] = await task_repo.query(
         user_id=user_id,
         created_at__gte=start_date,
         created_at__lte=end_date,
@@ -85,7 +85,7 @@ def get_new_calendar_data_for_user(
         )
 
     return PydanticBackendUserCalendarResponse(
-        user_id=user.id,
+        user_id=str(user.id),
         user_name=user.full_name,
         year=year,
         month=month,

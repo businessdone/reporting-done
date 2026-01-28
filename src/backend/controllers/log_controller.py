@@ -58,7 +58,7 @@ async def create_log_endpoint(
         task_status=body.task_status,
     )
 
-    result = await log_service.create(dto, current_user.id, session)
+    result = await log_service.create(dto, str(current_user.id), session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
@@ -112,7 +112,7 @@ async def get_all_logs_endpoint(
     if is_admin(current_user):
         result = await log_service.list_all(pagination, session, **filters)
     else:
-        result = await log_service.list_for_user(current_user.id, pagination, session, **filters)
+        result = await log_service.list_for_user(str(current_user.id), pagination, session, **filters)
 
     return PaginatedLogsResponse(
         items=result.items,
@@ -156,7 +156,7 @@ async def get_log_endpoint(
 
     log = result.value
 
-    if not is_admin(current_user) and log.user_id != current_user.id:
+    if not is_admin(current_user) and log.user_id != str(current_user.id):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     return log
@@ -179,7 +179,7 @@ async def update_log_endpoint(
     result = await log_service.update(
         log_id,
         dto,
-        current_user.id,
+        str(current_user.id),
         is_admin(current_user),
         session,
     )
@@ -199,7 +199,7 @@ async def delete_log_endpoint(
 ):
     result = await log_service.delete(
         log_id,
-        current_user.id,
+        str(current_user.id),
         is_admin(current_user),
         session,
     )

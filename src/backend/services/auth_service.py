@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from businessdone_core.auth import hash_password, verify_password
-from businessdone_core.database import Repository
+from bd_core.auth import hash_password, verify_password
+from bd_core.database import Repository
 from core.models import User
 from core.enums import Permissions
 from backend.types.result import Result, Ok, Err
@@ -31,7 +31,7 @@ class AuthService:
         is_admin = Permissions(user.permissions) == Permissions.ADMIN
 
         return Ok(AuthenticatedUser(
-            user_id=UserId(user.id),
+            user_id=UserId(str(user.id)),
             email=user.email,
             full_name=user.full_name,
             permissions=user.permissions,
@@ -52,7 +52,7 @@ class AuthService:
         is_admin = Permissions(user.permissions) == Permissions.ADMIN
 
         return Ok(AuthenticatedUser(
-            user_id=UserId(user.id),
+            user_id=UserId(str(user.id)),
             email=user.email,
             full_name=user.full_name,
             permissions=user.permissions,

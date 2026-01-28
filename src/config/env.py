@@ -31,7 +31,7 @@ class EnvironmentConfig(BaseSettings):
     def async_database_url(self) -> str:
         return f"postgresql+asyncpg://{quote_plus(self.DB_USER)}:{quote_plus(self.DB_PASSWORD)}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-    class Config:
+    class Config:  # pyright: ignore[reportIncompatibleVariableOverride]
         env_file = ".env"
         env_file_encoding = "utf-8"
 

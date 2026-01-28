@@ -9,8 +9,8 @@ from starlette.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from businessdone_core.database import PGSQLClient
-from businessdone_core.auth import create_session_middleware
+from bd_core.database import PGSQLClient
+from bd_core.auth import create_session_middleware
 
 from config.env import ENV
 from database.models import configure_mappings

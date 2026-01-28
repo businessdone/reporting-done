@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from businessdone_core.database import PGSQLClient
+from bd_core.database import PGSQLClient
 
 
 async def get_db_session(request: Request) -> AsyncGenerator[AsyncSession, None]:

@@ -4,7 +4,7 @@ This module provides OCR page limits for each subscription tier.
 These are reports-specific extensions to the bd-core SubscriptionTier enum.
 """
 
-from businessdone_core.enums import SubscriptionTier
+from bd_core.enums import SubscriptionTier
 
 
 OCR_PAGE_LIMITS: dict[SubscriptionTier, int] = {

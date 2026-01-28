@@ -49,7 +49,7 @@ async def test_unauthenticated_endpoint_returns_401():
 @pytest.mark.asyncio
 async def test_bdcore_database_client_available():
     """Verify PGSQLClient from bd-core is properly integrated."""
-    from businessdone_core.database import PGSQLClient
+    from bd_core.database import PGSQLClient
 
     # Verify the import works and the class has expected interface
     assert hasattr(PGSQLClient, "session")
@@ -59,7 +59,7 @@ async def test_bdcore_database_client_available():
 @pytest.mark.asyncio
 async def test_bdcore_session_middleware_available():
     """Verify session middleware from bd-core is properly integrated."""
-    from businessdone_core.auth import create_session_middleware
+    from bd_core.auth import create_session_middleware
 
     # Verify the factory function works
     middleware_class, kwargs = create_session_middleware(
@@ -75,7 +75,7 @@ async def test_bdcore_session_middleware_available():
 @pytest.mark.asyncio
 async def test_bdcore_repository_available():
     """Verify Repository from bd-core is properly integrated."""
-    from businessdone_core.database import Repository
+    from bd_core.database import Repository
 
     # Verify the class has expected async methods (bd-core API)
     assert hasattr(Repository, "get")
@@ -89,7 +89,7 @@ async def test_bdcore_repository_available():
 @pytest.mark.asyncio
 async def test_shared_models_from_bdcore():
     """Verify shared models are properly imported from bd-core."""
-    from businessdone_core.database.models import User, Organization, Project
+    from bd_core.database.models import User, Organization, Project
 
     # Verify models exist and have expected attributes
     assert User is not None
@@ -100,7 +100,7 @@ async def test_shared_models_from_bdcore():
 @pytest.mark.asyncio
 async def test_shared_enums_from_bdcore():
     """Verify shared enums are properly imported from bd-core."""
-    from businessdone_core.enums import (
+    from bd_core.enums import (
         Roles,
         ProjectStatus,
         SubscriptionTier,

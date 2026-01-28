@@ -5,7 +5,7 @@ import inspect
 
 def test_db_client_initialization():
     """Verify PGSQLClient can be initialized."""
-    from businessdone_core.database import PGSQLClient
+    from bd_core.database import PGSQLClient
 
     # Test with dummy config (won't actually connect)
     client = PGSQLClient(
@@ -23,7 +23,7 @@ def test_db_client_initialization():
 
 def test_db_client_has_close_method():
     """Verify PGSQLClient has async close method."""
-    from businessdone_core.database import PGSQLClient
+    from bd_core.database import PGSQLClient
 
     client = PGSQLClient(
         db_user="test",
@@ -40,7 +40,7 @@ def test_db_client_has_close_method():
 
 def test_session_middleware_creation():
     """Verify create_session_middleware from bd-core works."""
-    from businessdone_core.auth import create_session_middleware
+    from bd_core.auth import create_session_middleware
     from starlette.middleware.sessions import SessionMiddleware
 
     middleware_class, kwargs = create_session_middleware(

@@ -1,24 +1,20 @@
-from typing import List, Tuple, Optional
-
-from businessdone_core.auth import hash_password, verify_password
-
 from backend.models import (
     UserCreateModel,
     UserResponseModel,
     ProjectResponseModel,
     UserProfileUpdateModel,
 )
-from core.models import Log, Task, User, Project
-# Note: User mapping is configured at startup via configure_mappings()
+from bd_core.auth import hash_password, verify_password
+from bd_core.database import Repository
 from backend.models.models import LogResponseModel, TaskResponseModel
-from backend.utils.pagination import calculate_pagination
-from core.models.project_user import ProjectUser
 from backend.models.pagination import Pagination
+from backend.utils.pagination import calculate_pagination
+from core.models import Log, Task, User, Project
+from core.models.project_user import ProjectUser
 from sqlalchemy.ext.asyncio import AsyncSession
-from businessdone_core.database import Repository
 
 
-def create_user(user: UserCreateModel, session: AsyncSession) -> UserResponseModel:
+async def create_user(user: UserCreateModel, session: AsyncSession) -> UserResponseModel:
     """
     Create a new user in the database.
 
@@ -28,7 +24,7 @@ def create_user(user: UserCreateModel, session: AsyncSession) -> UserResponseMod
 
     Args:
         user (UserCreateModel): An instance containing the user's creation data.
-        session (ISession): The database session used for interacting with the database.
+        session (AsyncSession): The database session used for interacting with the database.
 
     Returns:
         UserResponseModel: A validated response model representing the newly created user.
@@ -51,31 +47,28 @@ def create_user(user: UserCreateModel, session: AsyncSession) -> UserResponseMod
         role_type=Roles.EDITOR.value,
         limit=get_ocr_page_limit(SubscriptionTier.FREE),
         permissions=user.permissions,
-        projects=[],
-        tasks=[],
     )
-    with session as s:
-        repository = Repository(s, User)
-        created_user = repository.create(new_user)
-        user_data = created_user.to_dict()
+    repository = Repository(session, User)
+    await repository.create(new_user)
+    await session.commit()
+    user_data = new_user.to_dict()
     return UserResponseModel.model_validate(user_data)
 
 
-def authenticate_user(
+async def authenticate_user(
     email: str, password: str, session: AsyncSession
-) -> Optional[User]:
-    with session as s:
-        repository = Repository(s, User)
-        users = repository.query(email=email)
-        if not users:
-            return None
-        user = users[0]
-        if verify_password(user.password, password):
-            return user
+) -> User | None:
+    repository = Repository(session, User)
+    users = await repository.query(email=email)
+    if not users:
         return None
+    user = users[0]
+    if verify_password(user.password, password):
+        return user
+    return None
 
 
-def get_user(session: AsyncSession, **kwargs) -> UserResponseModel:
+async def get_user(session: AsyncSession, **kwargs) -> UserResponseModel:
     """
     Retrieve a single user from the database based on provided criteria.
 
@@ -84,7 +77,7 @@ def get_user(session: AsyncSession, **kwargs) -> UserResponseModel:
     associated projects. It then validates and returns the user data as a `UserResponseModel`.
 
     Args:
-        session (ISession): The database session used for querying the user.
+        session (AsyncSession): The database session used for querying the user.
         **kwargs: Arbitrary keyword arguments representing the query parameters to filter the user.
 
     Returns:
@@ -93,15 +86,14 @@ def get_user(session: AsyncSession, **kwargs) -> UserResponseModel:
     Raises:
         IndexError: If no user matches the provided criteria.
     """
-    with session as s:
-        repository = Repository(s, User)
-        user = repository.query(**kwargs)[0]
-        user_dict = user.to_dict()
-
+    repository = Repository(session, User)
+    users = await repository.query(**kwargs)
+    user = users[0]
+    user_dict = user.to_dict()
     return UserResponseModel.model_validate(user_dict)
 
 
-def update_user(
+async def update_user(
     user_id: str, user_update_data: UserProfileUpdateModel, session: AsyncSession
 ) -> UserResponseModel:
     """
@@ -114,7 +106,7 @@ def update_user(
     Args:
         user_id (str): The unique identifier of the user to update.
         user_update_data (UserProfileUpdateModel): An instance containing the updated user data (full_name, email).
-        session (ISession): The database session used for interacting with the database.
+        session (AsyncSession): The database session used for interacting with the database.
 
     Returns:
         UserResponseModel: A validated response model with the updated user data.
@@ -122,40 +114,39 @@ def update_user(
     Raises:
         ValueError: If a user with the specified `user_id` does not exist.
     """
-    with session as s:
-        repository = Repository(s, User)
-        existing_user = repository.get(user_id)
+    repository = Repository(session, User)
+    existing_user = await repository.get(user_id)
 
-        if not existing_user:
-            raise ValueError(f"User with id {user_id} does not exist.")
+    if not existing_user:
+        raise ValueError(f"User with id {user_id} does not exist.")
 
-        # Get data from UserProfileUpdateModel, only fields that are set (not None)
-        update_data = user_update_data.model_dump(exclude_unset=True)
+    # Get data from UserProfileUpdateModel, only fields that are set (not None)
+    update_data = user_update_data.model_dump(exclude_unset=True)
 
-        # Ensure only allowed fields are updated and no password/permissions here
-        allowed_fields_to_update = ["full_name", "email", "permissions"]
+    # Ensure only allowed fields are updated and no password/permissions here
+    allowed_fields_to_update = ["full_name", "email", "permissions"]
 
-        something_updated = False
-        for key, value in update_data.items():
-            if key in allowed_fields_to_update:
-                # Handle full_name -> name/last_name conversion
-                if key == "full_name":
-                    name_parts = value.split(" ", 1)
-                    existing_user.name = name_parts[0]
-                    existing_user.last_name = name_parts[1] if len(name_parts) > 1 else ""
-                else:
-                    setattr(existing_user, key, value)
-                something_updated = True
-            # else: log a warning or ignore fields not in allowed_fields_to_update
+    something_updated = False
+    for key, value in update_data.items():
+        if key in allowed_fields_to_update:
+            # Handle full_name -> name/last_name conversion
+            if key == "full_name":
+                name_parts = value.split(" ", 1)
+                existing_user.name = name_parts[0]
+                existing_user.last_name = name_parts[1] if len(name_parts) > 1 else ""
+            else:
+                setattr(existing_user, key, value)
+            something_updated = True
+        # else: log a warning or ignore fields not in allowed_fields_to_update
 
-        if something_updated:
-            repository.update(existing_user)
-        # else: no actual changes were made to allowed fields
+    if something_updated:
+        await repository.update(existing_user)
+        await session.commit()
 
     return UserResponseModel.model_validate(existing_user.to_dict())
 
 
-def upsert_user(user: UserCreateModel, session: AsyncSession) -> UserResponseModel:
+async def upsert_user(user: UserCreateModel, session: AsyncSession) -> UserResponseModel:
     """
     Insert a new user or update an existing user based on unique constraints.
 
@@ -166,86 +157,85 @@ def upsert_user(user: UserCreateModel, session: AsyncSession) -> UserResponseMod
 
     Args:
         user (UserCreateModel): An instance containing the user data for upserting.
-        session (ISession): The database session used for interacting with the database.
+        session (AsyncSession): The database session used for interacting with the database.
 
     Returns:
         UserResponseModel: A validated response model with the upserted user data.
     """
     from core.enums import Roles, SubscriptionTier, get_ocr_page_limit
 
-    with session as s:
-        repository = Repository(s, User)
-        existing_user = repository.query(email=user.email)
+    repository = Repository(session, User)
+    existing_users = await repository.query(email=user.email)
 
-        if existing_user:
-            user_obj = existing_user[0]
-            update_data = user.model_dump(exclude_unset=True)
-            # Handle full_name -> name/last_name conversion for updates
-            if "full_name" in update_data:
-                name_parts = update_data.pop("full_name").split(" ", 1)
-                update_data["name"] = name_parts[0]
-                update_data["last_name"] = name_parts[1] if len(name_parts) > 1 else ""
-            for key, value in update_data.items():
-                setattr(user_obj, key, value)
-            repository.update(user_obj)
-        else:
-            # Split full_name into name and last_name
-            name_parts = user.full_name.split(" ", 1)
-            name = name_parts[0]
-            last_name = name_parts[1] if len(name_parts) > 1 else ""
+    if existing_users:
+        user_obj = existing_users[0]
+        update_data = user.model_dump(exclude_unset=True)
+        # Handle full_name -> name/last_name conversion for updates
+        if "full_name" in update_data:
+            name_parts = update_data.pop("full_name").split(" ", 1)
+            update_data["name"] = name_parts[0]
+            update_data["last_name"] = name_parts[1] if len(name_parts) > 1 else ""
+        for key, value in update_data.items():
+            setattr(user_obj, key, value)
+        await repository.update(user_obj)
+    else:
+        # Split full_name into name and last_name
+        name_parts = user.full_name.split(" ", 1)
+        name = name_parts[0]
+        last_name = name_parts[1] if len(name_parts) > 1 else ""
 
-            user_obj = User(
-                email=user.email,
-                password=user.password,
-                name=name,
-                last_name=last_name,
-                subscription=SubscriptionTier.FREE.value,
-                role_type=Roles.EDITOR.value,
-                limit=get_ocr_page_limit(SubscriptionTier.FREE),
-                permissions=user.permissions,
-            )
-            repository.create(user_obj)
+        user_obj = User(
+            email=user.email,
+            password=user.password,
+            name=name,
+            last_name=last_name,
+            subscription=SubscriptionTier.FREE.value,
+            role_type=Roles.EDITOR.value,
+            limit=get_ocr_page_limit(SubscriptionTier.FREE),
+            permissions=user.permissions,
+        )
+        await repository.create(user_obj)
 
+    await session.commit()
     return UserResponseModel.model_validate(user_obj.to_dict())
 
 
-def get_all_users(
+async def get_all_users(
     session: AsyncSession, pagination: Pagination, **kwargs
-) -> Tuple[List[UserResponseModel], Pagination]:
-    with session as s:
-        repository = Repository(s, User)
-        total = repository.count(**kwargs)
+) -> tuple[list[UserResponseModel], Pagination]:
+    repository = Repository(session, User)
+    total = await repository.count(**kwargs)
 
-        order_by = pagination.order_by
+    order_by = pagination.order_by
 
-        pagination = calculate_pagination(
-            total=total,
-            page=pagination.current_page or 1,
-            per_page=pagination.limit or 25,
-        )
+    pagination = calculate_pagination(
+        total=total,
+        page=pagination.current_page or 1,
+        per_page=pagination.limit or 25,
+    )
 
-        pagination.order_by = order_by
+    pagination.order_by = order_by
 
-        if total == 0:
-            return [], pagination
+    if total == 0:
+        return [], pagination
 
-        query = repository.query(
-            order_by=pagination.order_by,
-            limit=pagination.limit,
-            offset=pagination.offset,
-            options=[User.tasks, User.projects],  # type: ignore
-            **kwargs,
-        )
+    users = await repository.query(
+        order_by=pagination.order_by,
+        limit=pagination.limit,
+        offset=pagination.offset,
+        options=[User.tasks, User.projects],  # type: ignore[list-item]
+        **kwargs,
+    )
 
-        user_models = [
-            UserResponseModel.model_validate(user.to_dict()) for user in query
-        ]
-        return user_models, pagination
+    user_models = [
+        UserResponseModel.model_validate(user.to_dict()) for user in users
+    ]
+    return user_models, pagination
 
 
-def get_user_tasks(
+async def get_user_tasks(
     session: AsyncSession, user_id: str, pagination: Pagination
-) -> Tuple[List[TaskResponseModel], Pagination]:
+) -> tuple[list[TaskResponseModel], Pagination]:
     """
     Retrieve all tasks associated with a user.
 
@@ -254,32 +244,31 @@ def get_user_tasks(
     returns the task data as a list of `TaskResponseModel`.
 
     Args:
-        session (ISession): The database session used for querying the tasks.
+        session (AsyncSession): The database session used for querying the tasks.
         user_id (str): The unique identifier of the user to filter tasks.
 
     Returns:
-        List[TaskResponseModel]: A list of validated response models representing the tasks.
+        list[TaskResponseModel]: A list of validated response models representing the tasks.
     """
-    with session as s:
-        repository = Repository(s, Task)
-        tasks = repository.query(user_id=user_id)
+    repository = Repository(session, Task)
+    tasks = await repository.query(user_id=user_id)
 
-        total = len(tasks)
+    total = len(tasks)
 
-        order_by = pagination.order_by
+    order_by = pagination.order_by
 
-        pagination = calculate_pagination(
-            total=total,
-            page=pagination.current_page or 1,
-            per_page=pagination.limit or 25,
-        )
+    pagination = calculate_pagination(
+        total=total,
+        page=pagination.current_page or 1,
+        per_page=pagination.limit or 25,
+    )
 
-        pagination.order_by = order_by
+    pagination.order_by = order_by
 
-        if not tasks or total == 0:
-            return [], pagination
+    if not tasks or total == 0:
+        return [], pagination
 
-        task_dicts = [task.to_dict() for task in tasks]
+    task_dicts = [task.to_dict() for task in tasks]
 
     output = [
         TaskResponseModel.model_validate(task_dict) for task_dict in task_dicts
@@ -288,60 +277,55 @@ def get_user_tasks(
     return output, pagination
 
 
-def get_project_by_user(
+async def get_project_by_user(
     session: AsyncSession, user_id: str, pagination: Pagination, **kwargs
-) -> Tuple[List[ProjectResponseModel], Pagination]:
+) -> tuple[list[ProjectResponseModel], Pagination]:
     """
     Retrieve paginated projects associated with a user.
 
     Args:
-        session (ISession): The database session used for querying the projects.
+        session (AsyncSession): The database session used for querying the projects.
         user_id (str): The unique identifier of the user to filter projects.
         pagination (Pagination): Pagination parameters.
 
     Returns:
-        Tuple[List[ProjectResponseModel], Pagination]: Tuple of project list and pagination info.
+        tuple[list[ProjectResponseModel], Pagination]: Tuple of project list and pagination info.
 
     Raises:
         IndexError: If no projects are associated with the specified user.
     """
-    with session as s:
-        repository = Repository(s, Project)
-        project_user_repository = Repository(s, ProjectUser)
+    repository = Repository(session, Project)
+    project_user_repository = Repository(session, ProjectUser)
 
-        total = project_user_repository.count(user_id=user_id, **kwargs)
-        project_ids = [
-            association.project_id
-            for association in project_user_repository.query(
-                user_id=user_id, **kwargs
-            )
-        ]
+    total = await project_user_repository.count(user_id=user_id, **kwargs)
+    associations = await project_user_repository.query(user_id=user_id, **kwargs)
+    project_ids = [association.project_id for association in associations]
 
-        order_by = pagination.order_by
+    order_by = pagination.order_by
 
-        pagination = calculate_pagination(
-            total=total,
-            page=pagination.current_page or 1,
-            per_page=pagination.limit or 25,
-        )
+    pagination = calculate_pagination(
+        total=total,
+        page=pagination.current_page or 1,
+        per_page=pagination.limit or 25,
+    )
 
-        pagination.order_by = order_by
+    pagination.order_by = order_by
 
-        if total == 0:
-            return [], pagination
+    if total == 0:
+        return [], pagination
 
-        projects = repository.query(
-            order_by=pagination.order_by,
-            limit=pagination.limit,
-            offset=pagination.offset,
-            in_={Project.id: project_ids},  # type: ignore
-            **kwargs,
-        )
+    projects = await repository.query(
+        order_by=pagination.order_by,
+        limit=pagination.limit,
+        offset=pagination.offset,
+        in_={Project.id: project_ids},  # type: ignore[dict-item]
+        **kwargs,
+    )
 
-        if not projects:
-            return [], pagination
+    if not projects:
+        return [], pagination
 
-        project_dicts = [project.to_dict() for project in projects]
+    project_dicts = [project.to_dict() for project in projects]
 
     output = [
         ProjectResponseModel.model_validate(project)
@@ -351,36 +335,35 @@ def get_project_by_user(
     return output, pagination
 
 
-def get_user_logs(
+async def get_user_logs(
     session: AsyncSession, user_id: str, pagination: Pagination, **kwargs
-) -> Tuple[List[LogResponseModel], Pagination]:
-    with session as s:
-        repo = Repository(s, Log)
-        total = repo.count(user_id=user_id, **kwargs)
+) -> tuple[list[LogResponseModel], Pagination]:
+    repo = Repository(session, Log)
+    total = await repo.count(user_id=user_id, **kwargs)
 
-        order_by = pagination.order_by
+    order_by = pagination.order_by
 
-        pagination = calculate_pagination(
-            total=total,
-            page=pagination.current_page or 1,
-            per_page=pagination.limit or 25,
-        )
+    pagination = calculate_pagination(
+        total=total,
+        page=pagination.current_page or 1,
+        per_page=pagination.limit or 25,
+    )
 
-        pagination.order_by = order_by
+    pagination.order_by = order_by
 
-        if total == 0:
-            return [], pagination
+    if total == 0:
+        return [], pagination
 
-        logs = repo.query(
-            user_id=user_id,
-            order_by=pagination.order_by,
-            limit=pagination.limit,
-            offset=pagination.offset,
-            **kwargs,
-        )
+    logs = await repo.query(
+        user_id=user_id,
+        order_by=pagination.order_by,
+        limit=pagination.limit,
+        offset=pagination.offset,
+        **kwargs,
+    )
 
-        logs_list = [
-            LogResponseModel.model_validate(log.to_dict()) for log in logs
-        ]
+    logs_list = [
+        LogResponseModel.model_validate(log.to_dict()) for log in logs
+    ]
 
     return logs_list, pagination

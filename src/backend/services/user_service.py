@@ -19,7 +19,7 @@ from backend.services.pagination_service import PaginationService
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, Task, Log, Project
 from core.models.project_user import ProjectUser
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 class UserService:
@@ -63,8 +63,6 @@ class UserService:
             role_type=Roles.EDITOR.value,
             limit=get_ocr_page_limit(SubscriptionTier.FREE),
             permissions=data.permissions,
-            projects=[],
-            tasks=[],
         )
 
         await repo.create(new_user)
@@ -164,8 +162,7 @@ class UserService:
         users = await repo.query(
             limit=meta.per_page,
             offset=(meta.current_page - 1) * meta.per_page,
-            options=[User.tasks, User.projects],
-            **filters,
+            options=[User.tasks, User.projects],              **filters,
         )
 
         items = [UserDTO.model_validate(u.to_dict()) for u in users]
@@ -192,8 +189,7 @@ class UserService:
 
         projects = await project_repo.query(
             in_={Project.id: project_ids},
-            options=[Project.developers, Project.tasks],
-        )
+            options=[Project.developers, Project.tasks],          )
 
         items = [ProjectDTO.model_validate(p.to_dict()) for p in projects]
 

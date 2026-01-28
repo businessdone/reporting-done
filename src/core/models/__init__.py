@@ -1,7 +1,7 @@
 """Domain models for reports-system."""
 
 # Shared models from bd-core
-from businessdone_core.database.models import User, Organization, Project
+from bd_core.database.models import User, Organization, Project
 
 # Reports-specific models
 from .task import Task

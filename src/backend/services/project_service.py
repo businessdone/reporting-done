@@ -14,7 +14,7 @@ from backend.types.result import Ok, Err, Result
 from backend.types.pagination import PaginatedResult, PaginationParams
 from core.models.project_user import ProjectUser
 from sqlalchemy.ext.asyncio import AsyncSession
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 from backend.services.pagination_service import PaginationService
 
 
@@ -35,8 +35,7 @@ class ProjectService:
         if existing:
             return Err(f"Project with name '{data.name}' already exists")
 
-        new_project = Project(
-            id=str(ULID()),
+        new_project = Project(              id=str(ULID()),
             name=data.name,
             email=data.email,
             send_email=data.send_email,
@@ -58,8 +57,7 @@ class ProjectService:
         repo = Repository(session, Project)
         projects = await repo.query(
             id=project_id,
-            options=[Project.developers, Project.tasks],
-        )
+            options=[Project.developers, Project.tasks],          )
 
         if not projects:
             return Err(f"Project with id '{project_id}' not found")
@@ -88,8 +86,7 @@ class ProjectService:
 
         updated = await repo.query(
             id=project_id,
-            options=[Project.developers, Project.tasks],
-        )
+            options=[Project.developers, Project.tasks],          )
 
         return Ok(ProjectDTO.model_validate(updated[0].to_dict()))
 
@@ -132,8 +129,7 @@ class ProjectService:
         projects = await repo.query(
             limit=meta.per_page,
             offset=(meta.current_page - 1) * meta.per_page,
-            options=[Project.developers, Project.tasks],
-            **filters,
+            options=[Project.developers, Project.tasks],              **filters,
         )
 
         items = [ProjectDTO.model_validate(p.to_dict()) for p in projects]
@@ -162,8 +158,7 @@ class ProjectService:
 
         projects = await project_repo.query(
             in_={Project.id: project_ids},
-            options=[Project.developers, Project.tasks],
-            **filters,
+            options=[Project.developers, Project.tasks],              **filters,
         )
 
         items = [ProjectDTO.model_validate(p.to_dict()) for p in projects]
@@ -266,8 +261,7 @@ class ProjectService:
         user_ids = [a.user_id for a in associations]
         users = await user_repo.query(
             in_={User.id: user_ids},
-            options=[User.tasks, User.projects],
-        )
+            options=[User.tasks, User.projects],          )
 
         items = [UserDTO.model_validate(u.to_dict()) for u in users]
 

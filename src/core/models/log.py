@@ -84,12 +84,17 @@ class Log:
     @classmethod
     def from_dict(cls, data: dict) -> "Log":
         # Support legacy field name
-        created_at = data.get("created_at") or data.get("timestamp")
-        if isinstance(created_at, str):
-            created_at = datetime.fromisoformat(created_at)
-        elif isinstance(created_at, int):
+        created_at_raw = data.get("created_at") or data.get("timestamp")
+        created_at: datetime
+        if isinstance(created_at_raw, str):
+            created_at = datetime.fromisoformat(created_at_raw)
+        elif isinstance(created_at_raw, int):
             # Legacy support: convert epoch timestamp
-            created_at = datetime.fromtimestamp(created_at, tz=timezone.utc)
+            created_at = datetime.fromtimestamp(created_at_raw, tz=timezone.utc)
+        elif isinstance(created_at_raw, datetime):
+            created_at = created_at_raw
+        else:
+            created_at = datetime.now(timezone.utc)
 
         # Support legacy field name
         hours_spent = data.get("hours_spent", data.get("hours_spent_today", 0.0))

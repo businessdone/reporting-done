@@ -1,12 +1,11 @@
 from typing import Sequence
-from datetime import date, datetime
+from datetime import datetime
 import calendar
 
 from fastapi import Query, Depends, APIRouter, HTTPException, Body
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from backend.services import AvailabilityService
-from backend.types.dtos import AvailabilityDTO
 from backend.types.result import Err
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies import (
@@ -15,40 +14,24 @@ from backend.dependencies import (
     is_admin,
     get_availability_service,
 )
-from core.models import User, OfficeAvailability
+from core.models import User
 from core.models.project_user import ProjectUser
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 new_calendar_router = APIRouter(prefix="/calendar")
 
 
-def can_view_calendar(current_user: User, target_user_id: str, session) -> bool:
-    if current_user.id == target_user_id:
-        return True
-    if is_admin(current_user):
-        return True
-
-    project_user_repo = Repository(session, ProjectUser)
-    current_user_projects = project_user_repo.query(user_id=current_user.id)
-    current_project_ids = {pu.project_id for pu in current_user_projects}
-
-    target_user_projects = project_user_repo.query(user_id=target_user_id)
-    target_project_ids = {pu.project_id for pu in target_user_projects}
-
-    return bool(current_project_ids & target_project_ids)
-
-
 async def can_view_calendar_async(
     current_user: User, target_user_id: str, session: AsyncSession
 ) -> bool:
-    if current_user.id == target_user_id:
+    if str(current_user.id) == target_user_id:
         return True
     if is_admin(current_user):
         return True
 
     project_user_repo = Repository(session, ProjectUser)
-    current_user_projects = await project_user_repo.query(user_id=current_user.id)
+    current_user_projects = await project_user_repo.query(user_id=str(current_user.id))
     current_project_ids = {pu.project_id for pu in current_user_projects}
 
     target_user_projects = await project_user_repo.query(user_id=target_user_id)
@@ -58,7 +41,7 @@ async def can_view_calendar_async(
 
 
 def can_edit_calendar(current_user: User, target_user_id: str) -> bool:
-    if current_user.id == target_user_id:
+    if str(current_user.id) == target_user_id:
         return True
     return is_admin(current_user)
 
@@ -112,49 +95,48 @@ class CalendarUpdateResponse(BaseModel):
 
 
 @new_calendar_router.get("/viewable-users", response_model=Sequence[ViewableUserResponse])
-def get_viewable_users_endpoint(
+async def get_viewable_users_endpoint(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    with session as s:
-        user_repo = Repository(s, User)
-        
-        if is_admin(current_user):
-            all_users = user_repo.query()
-            return [
+    user_repo = Repository(session, User)
+
+    if is_admin(current_user):
+        all_users = await user_repo.query()
+        return [
+            ViewableUserResponse(
+                id=str(u.id),
+                full_name=u.full_name,
+                email=u.email,
+                can_edit=True,
+            )
+            for u in all_users
+        ]
+
+    project_user_repo = Repository(session, ProjectUser)
+    current_user_project_memberships = await project_user_repo.query(user_id=str(current_user.id))
+    current_project_ids = {pu.project_id for pu in current_user_project_memberships}
+
+    viewable_user_ids: set[str] = {str(current_user.id)}
+    for project_id in current_project_ids:
+        project_members = await project_user_repo.query(project_id=project_id)
+        for pm in project_members:
+            viewable_user_ids.add(str(pm.user_id))
+
+    viewable_users = []
+    for uid in viewable_user_ids:
+        user = await user_repo.get(uid)
+        if user:
+            viewable_users.append(
                 ViewableUserResponse(
-                    id=u.id,
-                    full_name=u.full_name,
-                    email=u.email,
-                    can_edit=True,
+                    id=str(user.id),
+                    full_name=user.full_name,
+                    email=user.email,
+                    can_edit=(str(user.id) == str(current_user.id)),
                 )
-                for u in all_users
-            ]
-        
-        project_user_repo = Repository(s, ProjectUser)
-        current_user_project_memberships = project_user_repo.query(user_id=current_user.id)
-        current_project_ids = {pu.project_id for pu in current_user_project_memberships}
-        
-        viewable_user_ids: set[str] = {current_user.id}
-        for project_id in current_project_ids:
-            project_members = project_user_repo.query(project_id=project_id)
-            for pm in project_members:
-                viewable_user_ids.add(pm.user_id)
-        
-        viewable_users = []
-        for uid in viewable_user_ids:
-            user = user_repo.get(uid)
-            if user:
-                viewable_users.append(
-                    ViewableUserResponse(
-                        id=user.id,
-                        full_name=user.full_name,
-                        email=user.email,
-                        can_edit=(user.id == current_user.id),
-                    )
-                )
-        
-        return viewable_users
+            )
+
+    return viewable_users
 
 
 @new_calendar_router.get("/{user_id}", response_model=UserCalendarResponse)
@@ -169,8 +151,7 @@ async def get_user_calendar_endpoint(
     if not await can_view_calendar_async(current_user, user_id, session):
         raise HTTPException(status_code=403, detail="Not authorized to view this calendar")
 
-    # NOTE: availability_service is not yet async - will be converted in a future task
-    result = availability_service.get_user_availability(user_id, year, month, session)
+    result = await availability_service.get_user_availability(user_id, year, month, session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
@@ -180,7 +161,6 @@ async def get_user_calendar_endpoint(
     from backend.dependencies.services import get_task_service
     from backend.types.pagination import PaginationParams
 
-    # TaskService is now async
     task_service = get_task_service()
     tasks_result = await task_service.list_for_user(
         user_id,
@@ -225,7 +205,7 @@ async def get_user_calendar_endpoint(
 
 
 @new_calendar_router.post("/{user_id}", response_model=CalendarUpdateResponse)
-def update_user_calendar_endpoint(
+async def update_user_calendar_endpoint(
     user_id: str,
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
@@ -236,24 +216,24 @@ def update_user_calendar_endpoint(
 ):
     if not can_edit_calendar(current_user, user_id):
         raise HTTPException(status_code=403, detail="Not authorized to update this calendar")
-    
+
     try:
         office_dates = [datetime.strptime(d, "%Y-%m-%d").date() for d in payload.office_dates]
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid date format: {e}")
-    
+
     for d in office_dates:
         if d.year != year or d.month != month:
             raise HTTPException(
                 status_code=400,
                 detail=f"Date {d} is not in {year}-{month:02d}",
             )
-    
-    result = availability_service.batch_update_month(user_id, year, month, office_dates, session)
-    
+
+    result = await availability_service.batch_update_month(user_id, year, month, office_dates, session)
+
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
-    
+
     return CalendarUpdateResponse(
         message="Calendar updated successfully",
         user_id=user_id,

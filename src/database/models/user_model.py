@@ -7,9 +7,9 @@ relationships (tasks, task_logs) via configure_user_mapping().
 from sqlalchemy.orm import class_mapper, relationship
 from sqlalchemy.orm.exc import UnmappedClassError
 
-from businessdone_core.database.models import User
-from businessdone_core.database.models.user import user_table
-from businessdone_core.database.registry import mapper_registry
+from bd_core.database.models import User
+from bd_core.database.models.user import user_table
+from bd_core.database.registry import mapper_registry
 
 
 def configure_user_mapping() -> None:

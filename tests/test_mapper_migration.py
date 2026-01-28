@@ -4,7 +4,7 @@
 def test_mapper_registry_from_bdcore() -> None:
     """Verify mapper_registry comes from bd-core."""
     from database.models.mapper import mapper_registry
-    from businessdone_core.database.registry import mapper_registry as bdcore_registry
+    from bd_core.database.registry import mapper_registry as bdcore_registry
 
     assert mapper_registry is bdcore_registry
 
@@ -12,7 +12,7 @@ def test_mapper_registry_from_bdcore() -> None:
 def test_shared_tables_from_bdcore() -> None:
     """Verify shared tables (user, organization, project) come from bd-core."""
     from database.models import user_table, organization_table, project_table
-    from businessdone_core.database.models import (
+    from bd_core.database.models import (
         user_table as bdcore_user_table,
         organization_table as bdcore_organization_table,
         project_table as bdcore_project_table,
@@ -26,7 +26,7 @@ def test_shared_tables_from_bdcore() -> None:
 def test_project_members_table_from_bdcore() -> None:
     """Verify project_members table comes from bd-core."""
     from database.models import project_members
-    from businessdone_core.database.models import (
+    from bd_core.database.models import (
         project_members_table as bdcore_project_members,
     )
 
@@ -36,7 +36,7 @@ def test_project_members_table_from_bdcore() -> None:
 def test_shared_models_from_bdcore() -> None:
     """Verify User, Organization, Project models come from bd-core."""
     from database.models import User, Organization, Project
-    from businessdone_core.database.models import (
+    from bd_core.database.models import (
         User as BdcoreUser,
         Organization as BdcoreOrganization,
         Project as BdcoreProject,

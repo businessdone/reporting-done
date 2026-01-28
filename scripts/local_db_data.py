@@ -2,12 +2,12 @@
 
 NOTE: This script needs to be updated to use async patterns.
 It previously used the sync SQLAlchemySession which has been removed.
-Use businessdone_core.database.PGSQLClient with async patterns instead.
+Use bd_core.database.PGSQLClient with async patterns instead.
 
 Example usage with async:
 
     import asyncio
-    from businessdone_core.database import PGSQLClient
+    from bd_core.database import PGSQLClient
 
     async def seed_database():
         client = PGSQLClient(

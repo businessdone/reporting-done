@@ -7,10 +7,10 @@ reports-specific relationships via configure_organization_mapping().
 from sqlalchemy.orm import class_mapper, relationship
 from sqlalchemy.orm.exc import UnmappedClassError
 
-from businessdone_core.database.models import Organization
-from businessdone_core.database.models.organization import organization_table
-from businessdone_core.database.models.user import user_table
-from businessdone_core.database.registry import mapper_registry
+from bd_core.database.models import Organization
+from bd_core.database.models.organization import organization_table
+from bd_core.database.models.user import user_table
+from bd_core.database.registry import mapper_registry
 
 
 def configure_organization_mapping() -> None:

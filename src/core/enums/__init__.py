@@ -1,6 +1,6 @@
 """Re-export enums from bd-core for backward compatibility."""
 
-from businessdone_core.enums import (
+from bd_core.enums import (
     FlagBase,
     Permissions,
     ProjectPermissions,

@@ -5,7 +5,7 @@
 def test_models_from_bdcore():
     """Verify shared models come from bd-core."""
     from core.models import User, Organization, Project
-    import businessdone_core.database.models as bdcore_models
+    import bd_core.database.models as bdcore_models
 
     # Verify they're the same classes
     assert User is bdcore_models.User

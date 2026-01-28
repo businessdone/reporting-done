@@ -6,7 +6,7 @@ from backend.types.result import Result, Ok, Err
 from backend.types.dtos import AvailabilityDTO, MonthlyAvailabilityDTO, UserDTO, DayAvailabilityStatus
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, OfficeAvailability
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 class AvailabilityService:
@@ -69,7 +69,7 @@ class AvailabilityService:
             current += timedelta(days=1)
 
         return Ok(MonthlyAvailabilityDTO(
-            user_id=user.id,
+            user_id=str(user.id),
             user_name=user.full_name,
             year=year,
             month=month,

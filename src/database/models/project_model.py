@@ -7,9 +7,9 @@ relationships (tasks) via configure_project_mapping().
 from sqlalchemy.orm import class_mapper, relationship
 from sqlalchemy.orm.exc import UnmappedClassError
 
-from businessdone_core.database.models import Project
-from businessdone_core.database.models.project import project_members_table, project_table
-from businessdone_core.database.registry import mapper_registry
+from bd_core.database.models import Project
+from bd_core.database.models.project import project_members_table, project_table
+from bd_core.database.registry import mapper_registry
 
 # Re-export with the name used in this codebase for backwards compatibility
 project_members = project_members_table

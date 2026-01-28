@@ -17,7 +17,7 @@ from backend.dependencies import (
 )
 from backend.utils.xlsx_parser import FileParser, IFileParser
 from core.models import User, OfficeAvailability
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 availability_router = APIRouter(prefix="/availability")
@@ -87,13 +87,13 @@ async def upload_xlsx(
                 continue
 
             user = users[0]
-            existing = await avail_repo.query(day=day_date, user_id=user.id)
+            existing = await avail_repo.query(day=day_date, user_id=str(user.id))
 
             if existing:
                 existing[0].present = True
             else:
                 new_avail = OfficeAvailability(
-                    user_id=user.id,
+                    user_id=str(user.id),
                     day=day_date,
                     present=True,
                 )
@@ -115,7 +115,7 @@ async def get_user_availability(
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     today = date.today()
@@ -154,7 +154,7 @@ async def update_user_availability_day(
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     try:
@@ -186,7 +186,7 @@ async def batch_update_availability(
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     try:

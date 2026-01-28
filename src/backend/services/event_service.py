@@ -1,5 +1,5 @@
 from typing import Any
-from datetime import datetime
+from datetime import datetime, date, timezone
 
 from ulid import ULID
 
@@ -9,7 +9,7 @@ from backend.types.dtos import EventCreateDTO, EventUpdateDTO, EventDTO
 from backend.services.pagination_service import PaginationService
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import Event
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 class EventService:
@@ -26,21 +26,16 @@ class EventService:
     ) -> Result[EventDTO, str]:
         repo = Repository(session, Event)
 
-        try:
-            event_date_ts = int(datetime.strptime(data.event_date, "%Y-%m-%d").timestamp())
-        except ValueError:
-            return Err("Invalid date format. Use YYYY-MM-DD")
-
         new_event = Event(
             id=str(ULID()),
             user_id=user_id,
             title=data.title,
             description=data.description,
             event_type=data.event_type,
-            event_date=event_date_ts,
+            event_date=data.event_date,
             start_time=data.start_time,
             end_time=data.end_time,
-            created_at=int(datetime.now().timestamp()),
+            created_at=datetime.now(timezone.utc),
         )
 
         await repo.create(new_event)
@@ -82,11 +77,6 @@ class EventService:
 
         for field, value in update_data.items():
             if value is not None:
-                if field == "event_date":
-                    try:
-                        value = int(datetime.strptime(value, "%Y-%m-%d").timestamp())
-                    except ValueError:
-                        return Err("Invalid date format. Use YYYY-MM-DD")
                 setattr(event, field, value)
 
         await session.commit()
@@ -162,15 +152,14 @@ class EventService:
         repo = Repository(session, Event)
 
         from calendar import monthrange
-        first_day_ts = int(datetime(year, month, 1).timestamp())
-        last_day = monthrange(year, month)[1]
-        last_day_ts = int(datetime(year, month, last_day, 23, 59, 59).timestamp())
+        first_day = date(year, month, 1)
+        last_day = date(year, month, monthrange(year, month)[1])
 
         all_events = await repo.query(user_id=user_id)
 
         month_events = [
             e for e in all_events
-            if first_day_ts <= e.event_date <= last_day_ts
+            if first_day <= e.event_date <= last_day
         ]
 
         return [EventDTO.model_validate(e.to_dict()) for e in month_events]

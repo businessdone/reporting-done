@@ -9,7 +9,7 @@ from backend.models.calendar_page import (
     PydanticBackendDailyAvailability,
     PydanticBackendUserCalendarResponse,
 )
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 async def get_user_availability_data(
@@ -74,7 +74,7 @@ async def get_user_availability_data(
         )
 
     return PydanticBackendUserCalendarResponse(
-        user_id=user.id,
+        user_id=str(user.id),
         user_name=user.full_name,
         year=year,
         month=month,

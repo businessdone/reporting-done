@@ -1,6 +1,6 @@
 """SQLAlchemy mapper configuration using bd-core's shared registry."""
 
-from businessdone_core.database.registry import mapper_registry
+from bd_core.database.registry import mapper_registry
 
 # Documentation of table ownership
 # Shared tables (DO NOT MIGRATE - managed by ocrdone-backend)

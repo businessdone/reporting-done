@@ -3,7 +3,7 @@
 from fastapi import Depends, Request, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 from core.models import User
 from core.enums import Permissions
 from backend.dependencies.db_session import get_db_session

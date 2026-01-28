@@ -8,7 +8,7 @@ from backend.models.models import LogResponseModel
 from backend.utils.pagination import calculate_pagination
 from backend.models.pagination import Pagination
 from sqlalchemy.ext.asyncio import AsyncSession
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 async def create_task(task: TaskCreateModel, session: AsyncSession) -> TaskResponseModel:
@@ -30,9 +30,9 @@ async def create_task(task: TaskCreateModel, session: AsyncSession) -> TaskRespo
     repo = Repository(session, Task)
 
     new_task = Task(
-        project_id=project.id,
+        project_id=str(project.id),
         project_name=project.name,
-        user_id=user.id,
+        user_id=str(user.id),
         user_name=user.full_name,
         title=task.title,
         hours_required=task.hours_required,

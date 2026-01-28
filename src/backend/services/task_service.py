@@ -9,7 +9,7 @@ from backend.types.dtos import TaskCreateDTO, TaskUpdateDTO, TaskDTO, LogDTO
 from backend.services.pagination_service import PaginationService
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, Task, Log, Project
-from businessdone_core.database import Repository
+from bd_core.database import Repository
 
 
 class TaskService:
@@ -39,9 +39,9 @@ class TaskService:
 
         new_task = Task(
             id=str(ULID()),
-            project_id=project.id,
+            project_id=str(project.id),
             project_name=project.name,
-            user_id=user.id,
+            user_id=str(user.id),
             user_name=user.full_name,
             title=data.title,
             hours_required=data.hours_required,

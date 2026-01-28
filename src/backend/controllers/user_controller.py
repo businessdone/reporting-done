@@ -82,7 +82,7 @@ async def get_current_user_details(
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
-    result = await user_service.get_by_id(current_user.id, session)
+    result = await user_service.get_by_id(str(current_user.id), session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
@@ -126,7 +126,7 @@ async def get_user_endpoint(
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Not authorized to view this profile")
 
     result = await user_service.get_by_id(user_id, session)
@@ -145,7 +145,7 @@ async def update_user_endpoint(
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Not authorized to update this profile")
 
     dto = UserUpdateDTO(
@@ -169,7 +169,7 @@ async def delete_user_endpoint(
     current_user: User = Depends(require_admin),
     user_service: UserService = Depends(get_user_service),
 ):
-    result = await user_service.delete(user_id, current_user.id, session)
+    result = await user_service.delete(user_id, str(current_user.id), session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
@@ -184,7 +184,7 @@ async def get_user_projects_endpoint(
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     pagination = PaginationParams(page=page, per_page=limit)
@@ -209,7 +209,7 @@ async def get_user_tasks_endpoint(
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     pagination = PaginationParams(page=page, per_page=limit)
@@ -234,7 +234,7 @@ async def get_user_logs_endpoint(
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
-    if current_user.id != user_id and not is_admin(current_user):
+    if str(current_user.id) != user_id and not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     pagination = PaginationParams(page=page, per_page=limit)

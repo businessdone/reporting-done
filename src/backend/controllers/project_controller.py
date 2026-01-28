@@ -98,7 +98,7 @@ async def get_all_projects_endpoint(
     if is_admin(current_user):
         result = await project_service.list_all(pagination, session, **filters)
     else:
-        result = await project_service.list_for_user(current_user.id, pagination, session, **filters)
+        result = await project_service.list_for_user(str(current_user.id), pagination, session, **filters)
 
     return PaginatedResponse(
         items=result.items,
@@ -126,7 +126,7 @@ async def get_project_endpoint(
 
     if not is_admin(current_user):
         user_projects = await project_service.list_for_user(
-            current_user.id,
+            str(current_user.id),
             PaginationParams(page=1, per_page=1000),
             session,
         )
