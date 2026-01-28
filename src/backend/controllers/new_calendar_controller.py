@@ -28,14 +28,32 @@ def can_view_calendar(current_user: User, target_user_id: str, session) -> bool:
         return True
     if is_admin(current_user):
         return True
-    
+
     project_user_repo = Repository(session, ProjectUser)
     current_user_projects = project_user_repo.query(user_id=current_user.id)
     current_project_ids = {pu.project_id for pu in current_user_projects}
-    
+
     target_user_projects = project_user_repo.query(user_id=target_user_id)
     target_project_ids = {pu.project_id for pu in target_user_projects}
-    
+
+    return bool(current_project_ids & target_project_ids)
+
+
+async def can_view_calendar_async(
+    current_user: User, target_user_id: str, session: AsyncSession
+) -> bool:
+    if current_user.id == target_user_id:
+        return True
+    if is_admin(current_user):
+        return True
+
+    project_user_repo = Repository(session, ProjectUser)
+    current_user_projects = await project_user_repo.query(user_id=current_user.id)
+    current_project_ids = {pu.project_id for pu in current_user_projects}
+
+    target_user_projects = await project_user_repo.query(user_id=target_user_id)
+    target_project_ids = {pu.project_id for pu in target_user_projects}
+
     return bool(current_project_ids & target_project_ids)
 
 
@@ -140,7 +158,7 @@ def get_viewable_users_endpoint(
 
 
 @new_calendar_router.get("/{user_id}", response_model=UserCalendarResponse)
-def get_user_calendar_endpoint(
+async def get_user_calendar_endpoint(
     user_id: str,
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
@@ -148,28 +166,28 @@ def get_user_calendar_endpoint(
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):
-    with session as s:
-        if not can_view_calendar(current_user, user_id, s):
-            raise HTTPException(status_code=403, detail="Not authorized to view this calendar")
-    
+    if not await can_view_calendar_async(current_user, user_id, session):
+        raise HTTPException(status_code=403, detail="Not authorized to view this calendar")
+
+    # NOTE: availability_service is not yet async - will be converted in a future task
     result = availability_service.get_user_availability(user_id, year, month, session)
-    
+
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
-    
+
     dto = result.value
-    
-    from backend.services.task_service import TaskService
+
     from backend.dependencies.services import get_task_service
     from backend.types.pagination import PaginationParams
-    
+
+    # TaskService is now async
     task_service = get_task_service()
-    tasks_result = task_service.list_for_user(
+    tasks_result = await task_service.list_for_user(
         user_id,
         PaginationParams(page=1, per_page=1000),
         session,
     )
-    
+
     first_day = datetime(year, month, 1)
     last_day = calendar.monthrange(year, month)[1]
     last_day_dt = datetime(year, month, last_day, 23, 59, 59)

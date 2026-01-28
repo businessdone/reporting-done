@@ -36,7 +36,8 @@ async def get_dashboard_summary(
 ):
     user_is_admin = is_admin(current_user)
     no_limit_pagination = PaginationParams(page=1, per_page=10000)
-    
+
+    # NOTE: project_service is not yet async - will be converted in a future task
     if user_is_admin:
         projects_result = project_service.list_all(
             no_limit_pagination,
@@ -52,23 +53,25 @@ async def get_dashboard_summary(
             archived=False,
         )
         active_projects_count = sum(1 for p in projects_result.items if not p.archived)
-    
+
     done_statuses = {TaskStatus.DONE.value, TaskStatus.CANCELLED.value}
-    
+
+    # TaskService is now async
     if user_is_admin:
-        tasks_result = task_service.list_all(no_limit_pagination, session)
+        tasks_result = await task_service.list_all(no_limit_pagination, session)
     else:
-        tasks_result = task_service.list_for_user(
+        tasks_result = await task_service.list_for_user(
             current_user.id,
             no_limit_pagination,
             session,
         )
-    
+
     pending_tasks_count = sum(
         1 for t in tasks_result.items
         if t.status and t.status not in done_statuses
     )
-    
+
+    # NOTE: log_service is not yet async - will be converted in a future task
     if user_is_admin:
         logs_result = log_service.list_all(no_limit_pagination, session)
     else:
@@ -77,9 +80,9 @@ async def get_dashboard_summary(
             no_limit_pagination,
             session,
         )
-    
+
     recent_logs_count = logs_result.total
-    
+
     return DashboardSummaryResponse(
         active_projects_count=active_projects_count,
         pending_tasks_count=pending_tasks_count,

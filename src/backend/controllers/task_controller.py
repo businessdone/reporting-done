@@ -84,7 +84,7 @@ async def create_task_endpoint(
         user_id=assigned_user_id,
     )
 
-    result = task_service.create(dto, current_user.id, session)
+    result = await task_service.create(dto, current_user.id, session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=400, detail=result.error)
@@ -93,7 +93,7 @@ async def create_task_endpoint(
 
 
 @task_router.get("/", response_model=PaginatedTasksResponse)
-def get_all_tasks_endpoint(
+async def get_all_tasks_endpoint(
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
     sort: str | None = Query(None),
@@ -138,9 +138,9 @@ def get_all_tasks_endpoint(
         filters["created_at__lte"] = date_to
 
     if is_admin(current_user):
-        result = task_service.list_all(pagination, session, **filters)
+        result = await task_service.list_all(pagination, session, **filters)
     else:
-        result = task_service.list_for_user(
+        result = await task_service.list_for_user(
             current_user.id, pagination, session, **filters
         )
 
@@ -179,7 +179,7 @@ def get_all_tasks_endpoint(
 
 
 @task_router.get("/export", response_class=StreamingResponse)
-def export_tasks_csv(
+async def export_tasks_csv(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     task_service: TaskService = Depends(get_task_service),
@@ -187,7 +187,7 @@ def export_tasks_csv(
     from datetime import datetime
 
     pagination = PaginationParams(page=1, per_page=10000)
-    result = task_service.list_all(pagination, session)
+    result = await task_service.list_all(pagination, session)
 
     output = StringIO()
     writer = csv.writer(output)
@@ -231,13 +231,13 @@ def export_tasks_csv(
 
 
 @task_router.get("/{task_id}", response_model=TaskDTO)
-def get_task_endpoint(
+async def get_task_endpoint(
     task_id: str,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):
-    result = task_service.get_by_id(task_id, session)
+    result = await task_service.get_by_id(task_id, session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
@@ -251,7 +251,7 @@ def get_task_endpoint(
 
 
 @task_router.put("/{task_id}", response_model=TaskDTO)
-def update_task_endpoint(
+async def update_task_endpoint(
     task_id: str,
     body: TaskUpdateRequest,
     session: AsyncSession = Depends(get_session),
@@ -267,7 +267,7 @@ def update_task_endpoint(
         returned=body.returned,
     )
 
-    result = task_service.update(
+    result = await task_service.update(
         task_id,
         dto,
         current_user.id,
@@ -288,14 +288,14 @@ async def delete_task_endpoint(
     current_user: User = Depends(require_admin),
     task_service: TaskService = Depends(get_task_service),
 ):
-    result = task_service.delete(task_id, session)
+    result = await task_service.delete(task_id, session)
 
     if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=result.error)
 
 
 @task_router.get("/{task_id}/logs", response_model=PaginatedLogsResponse)
-def get_task_logs_endpoint(
+async def get_task_logs_endpoint(
     task_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
@@ -304,7 +304,7 @@ def get_task_logs_endpoint(
     task_service: TaskService = Depends(get_task_service),
 ):
     pagination = PaginationParams(page=page, per_page=limit)
-    result = task_service.get_task_logs(task_id, pagination, session)
+    result = await task_service.get_task_logs(task_id, pagination, session)
 
     return PaginatedLogsResponse(
         items=result.items,
@@ -319,7 +319,7 @@ def get_task_logs_endpoint(
 @task_router.get(
     "/project/{project_id}", response_model=PaginatedTasksResponse
 )
-def get_tasks_by_project_endpoint(
+async def get_tasks_by_project_endpoint(
     project_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
@@ -328,7 +328,7 @@ def get_tasks_by_project_endpoint(
     task_service: TaskService = Depends(get_task_service),
 ):
     pagination = PaginationParams(page=page, per_page=limit)
-    result = task_service.list_all(pagination, session, project_id=project_id)
+    result = await task_service.list_all(pagination, session, project_id=project_id)
 
     return PaginatedTasksResponse(
         items=result.items,
@@ -341,7 +341,7 @@ def get_tasks_by_project_endpoint(
 
 
 @task_router.get("/user/{user_id}", response_model=PaginatedTasksResponse)
-def get_tasks_by_user_endpoint(
+async def get_tasks_by_user_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
@@ -353,7 +353,7 @@ def get_tasks_by_user_endpoint(
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     pagination = PaginationParams(page=page, per_page=limit)
-    result = task_service.list_for_user(user_id, pagination, session)
+    result = await task_service.list_for_user(user_id, pagination, session)
 
     return PaginatedTasksResponse(
         items=result.items,
