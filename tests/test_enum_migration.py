@@ -69,3 +69,31 @@ def test_file_status_available():
     assert FileStatus.QUEUED.value == "queued"
     assert FileStatus.PROCESSING.value == "processing"
     assert FileStatus.READY.value == "ready"
+
+
+def test_ocr_page_limits():
+    """OCR page limits should be available as reports-specific extension."""
+    from core.enums import (
+        SubscriptionTier,
+        OCR_PAGE_LIMITS,
+        get_ocr_page_limit,
+    )
+
+    # Test the constant mapping
+    assert OCR_PAGE_LIMITS[SubscriptionTier.FREE] == 10
+    assert OCR_PAGE_LIMITS[SubscriptionTier.TIER_1] == 300
+    assert OCR_PAGE_LIMITS[SubscriptionTier.TIER_2] == 1000
+    assert OCR_PAGE_LIMITS[SubscriptionTier.TIER_3] == 3500
+    assert OCR_PAGE_LIMITS[SubscriptionTier.TIER_4] == 14000
+
+    # Test the helper function
+    assert get_ocr_page_limit(SubscriptionTier.FREE) == 10
+    assert get_ocr_page_limit(SubscriptionTier.TIER_1) == 300
+    assert get_ocr_page_limit(SubscriptionTier.TIER_2) == 1000
+    assert get_ocr_page_limit(SubscriptionTier.TIER_3) == 3500
+    assert get_ocr_page_limit(SubscriptionTier.TIER_4) == 14000
+
+    # Verify all tiers are covered
+    for tier in SubscriptionTier:
+        assert tier in OCR_PAGE_LIMITS
+        assert get_ocr_page_limit(tier) > 0

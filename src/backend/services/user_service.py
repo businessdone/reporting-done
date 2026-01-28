@@ -41,7 +41,7 @@ class UserService:
         data: UserCreateDTO,
         session: ISession,
     ) -> Result[UserDTO, str]:
-        from core.enums import Roles, SubscriptionTier
+        from core.enums import Roles, SubscriptionTier, get_ocr_page_limit
 
         with session as s:
             repo = Repository(s, User)
@@ -65,7 +65,7 @@ class UserService:
                 last_name=last_name,
                 subscription=SubscriptionTier.FREE.value,
                 role_type=Roles.EDITOR.value,
-                limit=SubscriptionTier.FREE.ocr_page_limit,
+                limit=get_ocr_page_limit(SubscriptionTier.FREE),
                 permissions=data.permissions,
                 projects=[],
                 tasks=[],

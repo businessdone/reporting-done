@@ -37,7 +37,7 @@ def create_user(user: UserCreateModel, session: ISession) -> UserResponseModel:
     Returns:
         UserResponseModel: A validated response model representing the newly created user.
     """
-    from core.enums import Roles, SubscriptionTier
+    from core.enums import Roles, SubscriptionTier, get_ocr_page_limit
 
     ph = PasswordHasher()
     hashed_password = ph.hash(user.password)
@@ -54,7 +54,7 @@ def create_user(user: UserCreateModel, session: ISession) -> UserResponseModel:
         last_name=last_name,
         subscription=SubscriptionTier.FREE.value,
         role_type=Roles.EDITOR.value,
-        limit=SubscriptionTier.FREE.ocr_page_limit,
+        limit=get_ocr_page_limit(SubscriptionTier.FREE),
         permissions=user.permissions,
         projects=[],
         tasks=[],
@@ -179,7 +179,7 @@ def upsert_user(user: UserCreateModel, session: ISession) -> UserResponseModel:
     Returns:
         UserResponseModel: A validated response model with the upserted user data.
     """
-    from core.enums import Roles, SubscriptionTier
+    from core.enums import Roles, SubscriptionTier, get_ocr_page_limit
 
     with session as s:
         repository = Repository(s, User)
@@ -209,7 +209,7 @@ def upsert_user(user: UserCreateModel, session: ISession) -> UserResponseModel:
                 last_name=last_name,
                 subscription=SubscriptionTier.FREE.value,
                 role_type=Roles.EDITOR.value,
-                limit=SubscriptionTier.FREE.ocr_page_limit,
+                limit=get_ocr_page_limit(SubscriptionTier.FREE),
                 permissions=user.permissions,
             )
             repository.create(user_obj)
