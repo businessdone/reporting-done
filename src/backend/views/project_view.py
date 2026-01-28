@@ -10,12 +10,12 @@ from backend.models.models import TaskResponseModel, UserResponseModel
 from backend.utils.pagination import calculate_pagination
 from core.models.project_user import ProjectUser
 from backend.models.pagination import Pagination
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from database.repositories.repository import Repository
 
 
 def create_project(
-    project: ProjectCreateModel, session: ISession
+    project: ProjectCreateModel, session: AsyncSession
 ) -> ProjectResponseModel:
     """
     Create a new project in the database.
@@ -35,7 +35,7 @@ def create_project(
     return ProjectResponseModel.model_validate(project_data)
 
 
-def get_project(session: ISession, **kwargs) -> ProjectResponseModel:
+def get_project(session: AsyncSession, **kwargs) -> ProjectResponseModel:
     """
     Retrieve a single project from the database based on provided criteria.
     """
@@ -55,7 +55,7 @@ def get_project(session: ISession, **kwargs) -> ProjectResponseModel:
 
 
 def update_project(
-    project_id: str, project_update: ProjectCreateModel, session: ISession
+    project_id: str, project_update: ProjectCreateModel, session: AsyncSession
 ) -> ProjectResponseModel:
     """
     Update an existing project's information.
@@ -89,7 +89,7 @@ def update_project(
 
 
 def upsert_project(
-    project: ProjectCreateModel, session: ISession
+    project: ProjectCreateModel, session: AsyncSession
 ) -> ProjectResponseModel:
     """
     Insert a new project or update an existing project based on unique constraints.
@@ -118,7 +118,7 @@ def upsert_project(
 
 
 def get_all_projects(
-    session: ISession, pagination: Pagination, **kwargs
+    session: AsyncSession, pagination: Pagination, **kwargs
 ) -> Tuple[List[ProjectResponseModel], Pagination]:
     """
     Retrieve paginated projects from the database.
@@ -177,7 +177,7 @@ def get_all_projects(
 
 
 def get_users_projects(
-    user_id: str, session: ISession, pagination: Pagination, **kwargs
+    user_id: str, session: AsyncSession, pagination: Pagination, **kwargs
 ) -> Tuple[List[ProjectResponseModel], Pagination]:
     """
     Retrieve paginated projects associated with a specific user.
@@ -257,7 +257,7 @@ def get_users_projects(
 
 
 def assign_project_to_user(
-    project_id: str, user_id: str, session: ISession
+    project_id: str, user_id: str, session: AsyncSession
 ) -> ProjectResponseModel:
     with session as s:
         project = Repository(s, Project).get(project_id)
@@ -279,7 +279,7 @@ def assign_project_to_user(
 
 
 def remove_user_from_project(
-    project_id: str, user_id: str, session: ISession
+    project_id: str, user_id: str, session: AsyncSession
 ) -> ProjectResponseModel:
     with session as s:
         project = Repository(s, Project).get(project_id)
@@ -309,7 +309,7 @@ def remove_user_from_project(
 
 
 def get_user_by_project(
-    session: ISession, project_id: str, pagination: Pagination, **kwargs
+    session: AsyncSession, project_id: str, pagination: Pagination, **kwargs
 ) -> Tuple[List[UserResponseModel], Pagination]:
     """
     Retrieve paginated users associated with a project.
@@ -379,7 +379,7 @@ def get_user_by_project(
 
 
 def get_project_tasks(
-    session: ISession, project_id: str, pagination: Pagination, **kwargs
+    session: AsyncSession, project_id: str, pagination: Pagination, **kwargs
 ) -> Tuple[List[TaskResponseModel], Pagination]:
     """
     Retrieve paginated tasks associated with a project.

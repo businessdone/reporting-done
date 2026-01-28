@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 from backend.services import AuthService
 from backend.dependencies import get_session
 from backend.dependencies.auth import validate_csrf, get_current_user_optional
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.types.auth import AuthenticatedUser
 from backend.types.result import Ok, Err
 from core.models import User
@@ -46,7 +46,7 @@ _auth_service = AuthService()
 async def login(
     request: Request,
     body: LoginRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ):
     from backend.types.auth import AuthCredentials
     
@@ -80,7 +80,7 @@ async def logout(
 @auth_router.get("/me", response_model=CurrentUserResponse)
 async def get_current_user_info(
     request: Request,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ):
     user_id = request.session.get("user_id")
     
@@ -111,7 +111,7 @@ async def get_csrf_token(request: Request):
 
 
 @auth_router.get("/check")
-async def check_auth(request: Request, session: ISession = Depends(get_session)):
+async def check_auth(request: Request, session: AsyncSession = Depends(get_session)):
     user_id = request.session.get("user_id")
     
     if not user_id:

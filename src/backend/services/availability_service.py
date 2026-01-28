@@ -4,7 +4,7 @@ import calendar
 
 from backend.types.result import Result, Ok, Err
 from backend.types.dtos import AvailabilityDTO, MonthlyAvailabilityDTO, UserDTO, DayAvailabilityStatus
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, OfficeAvailability
 from database.repositories.repository import Repository
 
@@ -17,7 +17,7 @@ class AvailabilityService:
         user_id: str,
         year: int,
         month: int,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[MonthlyAvailabilityDTO, str]:
         if not (1 <= month <= 12):
             return Err("Month must be between 1 and 12")
@@ -83,7 +83,7 @@ class AvailabilityService:
         user_id: str,
         day: date,
         status: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[AvailabilityDTO, str]:
         status_lower = status.lower()
         valid_statuses = {"office", "remote", "off"}
@@ -140,7 +140,7 @@ class AvailabilityService:
         year: int,
         month: int,
         office_dates: Sequence[date],
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[MonthlyAvailabilityDTO, str]:
         if not (1 <= month <= 12):
             return Err("Month must be between 1 and 12")
@@ -203,7 +203,7 @@ class AvailabilityService:
     def get_office_users_for_date(
         self,
         target_date: date,
-        session: ISession,
+        session: AsyncSession,
     ) -> Sequence[UserDTO]:
         with session as s:
             avail_repo = Repository(s, OfficeAvailability)

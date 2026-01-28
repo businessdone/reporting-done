@@ -7,7 +7,7 @@ from backend.services import ProjectService
 from backend.types.dtos import ProjectDTO, ProjectCreateDTO, ProjectUpdateDTO, UserDTO, TaskDTO
 from backend.types.pagination import PaginationParams
 from backend.types.result import Err
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies import (
     get_session,
     get_current_user,
@@ -51,7 +51,7 @@ class PaginatedResponse(BaseModel):
 @project_router.post("/", response_model=ProjectDTO)
 async def create_project_endpoint(
     body: ProjectCreateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     project_service: ProjectService = Depends(get_project_service),
 ):
@@ -78,7 +78,7 @@ def get_all_projects_endpoint(
     order: str = Query("asc"),
     archived: bool | None = Query(None),
     send_email: bool | None = Query(None),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     project_service: ProjectService = Depends(get_project_service),
 ):
@@ -113,7 +113,7 @@ def get_all_projects_endpoint(
 @project_router.get("/{project_id}", response_model=ProjectDTO)
 def get_project_endpoint(
     project_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     project_service: ProjectService = Depends(get_project_service),
 ):
@@ -142,7 +142,7 @@ def get_project_endpoint(
 async def update_project_endpoint(
     project_id: str,
     body: ProjectUpdateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     project_service: ProjectService = Depends(get_project_service),
 ):
@@ -164,7 +164,7 @@ async def update_project_endpoint(
 @project_router.delete("/{project_id}", status_code=204)
 async def delete_project_endpoint(
     project_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     project_service: ProjectService = Depends(get_project_service),
 ):
@@ -178,7 +178,7 @@ async def delete_project_endpoint(
 def assign_user_endpoint(
     project_id: str,
     body: AssignUserRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     project_service: ProjectService = Depends(get_project_service),
 ):
@@ -194,7 +194,7 @@ def assign_user_endpoint(
 def remove_user_endpoint(
     project_id: str,
     body: AssignUserRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     project_service: ProjectService = Depends(get_project_service),
 ):
@@ -211,7 +211,7 @@ def get_project_users_endpoint(
     project_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     project_service: ProjectService = Depends(get_project_service),
 ):
@@ -233,7 +233,7 @@ def get_project_tasks_endpoint(
     project_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     project_service: ProjectService = Depends(get_project_service),
 ):

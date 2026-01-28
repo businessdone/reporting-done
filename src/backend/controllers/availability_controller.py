@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from backend.services import AvailabilityService
 from backend.types.dtos import UserDTO
 from backend.types.result import Err
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies import (
     get_session,
     get_current_user,
@@ -58,7 +58,7 @@ async def upload_xlsx(
     file: UploadFile = File(...),
     parser: IFileParser = Depends(FileParser),
     current_user: User = Depends(require_admin),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ):
     file_ext = file.filename.split(".")[-1] if file.filename else ""
     file_content = await file.read()
@@ -112,7 +112,7 @@ def get_user_availability(
     user_id: str,
     year: int | None = Query(None),
     month: int | None = Query(None, ge=1, le=12),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):
@@ -151,7 +151,7 @@ def get_user_availability(
 async def update_user_availability_day(
     user_id: str,
     body: UpdateDayRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):
@@ -183,7 +183,7 @@ async def batch_update_availability(
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
     body: BatchUpdateRequest = Body(...),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):
@@ -222,7 +222,7 @@ async def batch_update_availability(
 @availability_router.get("/office/{date_str}", response_model=UsersInOfficeResponse)
 def get_users_in_office(
     date_str: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):

@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from backend.services import AvailabilityService
 from backend.types.dtos import AvailabilityDTO
 from backend.types.result import Err
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies import (
     get_session,
     get_current_user,
@@ -95,7 +95,7 @@ class CalendarUpdateResponse(BaseModel):
 
 @new_calendar_router.get("/viewable-users", response_model=Sequence[ViewableUserResponse])
 def get_viewable_users_endpoint(
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     with session as s:
@@ -144,7 +144,7 @@ def get_user_calendar_endpoint(
     user_id: str,
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):
@@ -212,7 +212,7 @@ def update_user_calendar_endpoint(
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
     payload: CalendarUpdateRequest = Body(...),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     availability_service: AvailabilityService = Depends(get_availability_service),
 ):

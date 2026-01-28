@@ -7,7 +7,7 @@ from backend.services import UserService
 from backend.types.dtos import UserDTO, UserCreateDTO, UserUpdateDTO, ProjectDTO, TaskDTO, LogDTO
 from backend.types.pagination import PaginationParams
 from backend.types.result import Err
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies import (
     get_session,
     get_current_user,
@@ -50,7 +50,7 @@ class IsAdminResponse(BaseModel):
 @user_router.post("/", response_model=UserDTO)
 async def create_user_endpoint(
     body: UserCreateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -78,7 +78,7 @@ def is_admin_endpoint(
 
 @user_router.get("/me", response_model=UserDTO)
 async def get_current_user_details(
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -96,7 +96,7 @@ def get_all_users_endpoint(
     limit: int = Query(25, ge=1, le=100),
     sort: str | None = Query(None),
     order: str = Query("asc"),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -122,7 +122,7 @@ def get_all_users_endpoint(
 @user_router.get("/{user_id}", response_model=UserDTO)
 def get_user_endpoint(
     user_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -141,7 +141,7 @@ def get_user_endpoint(
 def update_user_endpoint(
     user_id: str,
     body: UserUpdateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -165,7 +165,7 @@ def update_user_endpoint(
 @user_router.delete("/{user_id}", status_code=204)
 async def delete_user_endpoint(
     user_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -180,7 +180,7 @@ def get_user_projects_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -205,7 +205,7 @@ def get_user_tasks_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -230,7 +230,7 @@ def get_user_logs_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
 ):

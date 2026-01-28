@@ -1,4 +1,4 @@
-from backend.dependencies.db_session import get_session, get_session_factory
+from backend.dependencies.db_session import get_db_session, get_session
 from backend.dependencies.auth import (
     get_current_user,
     get_current_user_optional,
@@ -17,8 +17,8 @@ from backend.dependencies.services import (
 )
 
 __all__ = [
-    "get_session",
-    "get_session_factory",
+    "get_db_session",
+    "get_session",  # Alias for backward compatibility
     "get_current_user",
     "get_current_user_optional",
     "require_admin",

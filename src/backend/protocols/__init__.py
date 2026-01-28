@@ -5,7 +5,6 @@ from backend.protocols.repository import (
     IQueryable,
     ICountable,
 )
-from backend.protocols.session import ISession, ITransactional, ISessionFactory
 from backend.protocols.services import (
     IUserService,
     IProjectService,
@@ -27,9 +26,6 @@ __all__ = [
     "IRepository",
     "IQueryable",
     "ICountable",
-    "ISession",
-    "ITransactional",
-    "ISessionFactory",
     "IUserService",
     "IProjectService",
     "ITaskService",

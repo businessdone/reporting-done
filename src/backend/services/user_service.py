@@ -16,7 +16,7 @@ from backend.types.dtos import (
 from backend.types.identifiers import UserId
 from backend.services.auth_service import AuthService
 from backend.services.pagination_service import PaginationService
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, Task, Log, Project
 from core.models.project_user import ProjectUser
 from database.repositories.repository import Repository
@@ -36,7 +36,7 @@ class UserService:
     def create(
         self,
         data: UserCreateDTO,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[UserDTO, str]:
         from core.enums import Roles, SubscriptionTier, get_ocr_page_limit
 
@@ -75,7 +75,7 @@ class UserService:
     def get_by_id(
         self,
         user_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[UserDTO, str]:
         with session as s:
             repo = Repository(s, User)
@@ -89,7 +89,7 @@ class UserService:
     def get_by_email(
         self,
         email: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[UserDTO, str]:
         with session as s:
             repo = Repository(s, User)
@@ -104,7 +104,7 @@ class UserService:
         self,
         user_id: str,
         data: UserUpdateDTO,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[UserDTO, str]:
         with session as s:
             repo = Repository(s, User)
@@ -133,7 +133,7 @@ class UserService:
         self,
         user_id: str,
         requesting_user_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[None, str]:
         if user_id == requesting_user_id:
             return Err("Cannot delete your own account")
@@ -153,7 +153,7 @@ class UserService:
     def list_all(
         self,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[UserDTO]:
         with session as s:
@@ -180,7 +180,7 @@ class UserService:
         self,
         user_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
     ) -> PaginatedResult[ProjectDTO]:
         with session as s:
             assoc_repo = Repository(s, ProjectUser)
@@ -208,7 +208,7 @@ class UserService:
         self,
         user_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
     ) -> PaginatedResult[TaskDTO]:
         with session as s:
             repo = Repository(s, Task)
@@ -234,7 +234,7 @@ class UserService:
         self,
         user_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
     ) -> PaginatedResult[LogDTO]:
         with session as s:
             repo = Repository(s, Log)

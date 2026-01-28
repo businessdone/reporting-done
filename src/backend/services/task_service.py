@@ -7,7 +7,7 @@ from backend.types.result import Result, Ok, Err
 from backend.types.pagination import PaginationParams, PaginatedResult
 from backend.types.dtos import TaskCreateDTO, TaskUpdateDTO, TaskDTO, LogDTO
 from backend.services.pagination_service import PaginationService
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, Task, Log, Project
 from database.repositories.repository import Repository
 
@@ -22,7 +22,7 @@ class TaskService:
         self,
         data: TaskCreateDTO,
         user_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[TaskDTO, str]:
         with session as s:
             project_repo = Repository(s, Project)
@@ -62,7 +62,7 @@ class TaskService:
     def get_by_id(
         self,
         task_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[TaskDTO, str]:
         with session as s:
             repo = Repository(s, Task)
@@ -79,7 +79,7 @@ class TaskService:
         data: TaskUpdateDTO,
         user_id: str,
         is_admin: bool,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[TaskDTO, str]:
         with session as s:
             repo = Repository(s, Task)
@@ -111,7 +111,7 @@ class TaskService:
     def delete(
         self,
         task_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[None, str]:
         with session as s:
             task_repo = Repository(s, Task)
@@ -133,7 +133,7 @@ class TaskService:
     def list_all(
         self,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[TaskDTO]:
         with session as s:
@@ -160,7 +160,7 @@ class TaskService:
         self,
         user_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[TaskDTO]:
         combined_filters = {**filters, "user_id": user_id}
@@ -170,7 +170,7 @@ class TaskService:
         self,
         task_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
     ) -> PaginatedResult[LogDTO]:
         with session as s:
             repo = Repository(s, Log)

@@ -12,12 +12,12 @@ from backend.utils.templates import templates
 from backend.utils.pagination import calculate_pagination
 from backend.models.pagination import Pagination
 from backend.utils.send_emails import send_email_to_user
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies.db_session import get_session
 from database.repositories.repository import Repository
 
 
-def create_log(log: LogCreateModel, session: ISession) -> LogResponseModel:
+def create_log(log: LogCreateModel, session: AsyncSession) -> LogResponseModel:
     """
     Create a new log in the database.
     """
@@ -77,7 +77,7 @@ def create_log(log: LogCreateModel, session: ISession) -> LogResponseModel:
     return LogResponseModel.model_validate(log_data)
 
 
-def get_log(session: ISession, **kwargs) -> LogResponseModel:
+def get_log(session: AsyncSession, **kwargs) -> LogResponseModel:
     """
     Retrieve a single log from the database based on provided criteria.
     """
@@ -92,7 +92,7 @@ def get_log(session: ISession, **kwargs) -> LogResponseModel:
 
 
 def update_log(
-    log_id: str, log_update: LogCreateModel, session: ISession
+    log_id: str, log_update: LogCreateModel, session: AsyncSession
 ) -> LogResponseModel:
     """
     Update an existing log's information.
@@ -118,7 +118,7 @@ def update_log(
     return LogResponseModel.model_validate(log_dict)
 
 
-def upsert_log(log: LogResponseModel, session: ISession) -> LogResponseModel:
+def upsert_log(log: LogResponseModel, session: AsyncSession) -> LogResponseModel:
     """
     Insert a new log or update an existing log based on unique constraints.
     """
@@ -151,7 +151,7 @@ def upsert_log(log: LogResponseModel, session: ISession) -> LogResponseModel:
 
 
 def get_all_logs(
-    session: ISession, pagination: Pagination, **kwargs
+    session: AsyncSession, pagination: Pagination, **kwargs
 ) -> Tuple[List[LogResponseModel], Pagination]:
     with session as s:
         repo = Repository(s, Log)

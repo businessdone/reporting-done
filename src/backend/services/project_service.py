@@ -13,7 +13,7 @@ from backend.types.dtos import (
 from backend.types.result import Ok, Err, Result
 from backend.types.pagination import PaginatedResult, PaginationParams
 from core.models.project_user import ProjectUser
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from database.repositories.repository import Repository
 from backend.services.pagination_service import PaginationService
 
@@ -27,7 +27,7 @@ class ProjectService:
     def create(
         self,
         data: ProjectCreateDTO,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[ProjectDTO, str]:
         with session as s:
             repo = Repository(s, Project)
@@ -53,7 +53,7 @@ class ProjectService:
     def get_by_id(
         self,
         project_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[ProjectDTO, str]:
         with session as s:
             repo = Repository(s, Project)
@@ -71,7 +71,7 @@ class ProjectService:
         self,
         project_id: str,
         data: ProjectUpdateDTO,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[ProjectDTO, str]:
         with session as s:
             repo = Repository(s, Project)
@@ -98,7 +98,7 @@ class ProjectService:
     def delete(
         self,
         project_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[None, str]:
         with session as s:
             repo = Repository(s, Project)
@@ -121,7 +121,7 @@ class ProjectService:
     def list_all(
         self,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[ProjectDTO]:
         with session as s:
@@ -148,7 +148,7 @@ class ProjectService:
         self,
         user_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[ProjectDTO]:
         with session as s:
@@ -179,7 +179,7 @@ class ProjectService:
         self,
         project_id: str,
         user_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[ProjectDTO, str]:
         with session as s:
             project_repo = Repository(s, Project)
@@ -217,7 +217,7 @@ class ProjectService:
         self,
         project_id: str,
         user_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[ProjectDTO, str]:
         with session as s:
             project_repo = Repository(s, Project)
@@ -251,7 +251,7 @@ class ProjectService:
         self,
         project_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
     ) -> PaginatedResult[UserDTO]:
         with session as s:
             assoc_repo = Repository(s, ProjectUser)
@@ -283,7 +283,7 @@ class ProjectService:
         self,
         project_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
     ) -> PaginatedResult[TaskDTO]:
         with session as s:
             repo = Repository(s, Task)

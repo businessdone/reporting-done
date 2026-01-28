@@ -18,7 +18,7 @@ from backend.dependencies import (
 )
 from backend.types.result import Err
 from backend.types.pagination import PaginationParams
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 
 task_router = APIRouter(prefix="/task")
 
@@ -62,7 +62,7 @@ class PaginatedLogsResponse(BaseModel):
 @task_router.post("/", response_model=TaskDTO)
 async def create_task_endpoint(
     body: TaskCreateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):
@@ -112,7 +112,7 @@ def get_all_tasks_endpoint(
         None,
         description="Filter by hours progress: overdue, on_track, not_started",
     ),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):
@@ -180,7 +180,7 @@ def get_all_tasks_endpoint(
 
 @task_router.get("/export", response_class=StreamingResponse)
 def export_tasks_csv(
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     task_service: TaskService = Depends(get_task_service),
 ):
@@ -233,7 +233,7 @@ def export_tasks_csv(
 @task_router.get("/{task_id}", response_model=TaskDTO)
 def get_task_endpoint(
     task_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):
@@ -254,7 +254,7 @@ def get_task_endpoint(
 def update_task_endpoint(
     task_id: str,
     body: TaskUpdateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):
@@ -284,7 +284,7 @@ def update_task_endpoint(
 @task_router.delete("/{task_id}", status_code=204)
 async def delete_task_endpoint(
     task_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     task_service: TaskService = Depends(get_task_service),
 ):
@@ -299,7 +299,7 @@ def get_task_logs_endpoint(
     task_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):
@@ -323,7 +323,7 @@ def get_tasks_by_project_endpoint(
     project_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):
@@ -345,7 +345,7 @@ def get_tasks_by_user_endpoint(
     user_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     task_service: TaskService = Depends(get_task_service),
 ):

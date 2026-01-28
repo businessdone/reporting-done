@@ -8,7 +8,7 @@ from backend.services import LogService
 from backend.types.dtos import LogDTO, LogCreateDTO, LogUpdateDTO
 from backend.types.pagination import PaginationParams
 from backend.types.result import Err
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies import (
     get_session,
     get_current_user,
@@ -47,7 +47,7 @@ class PaginatedLogsResponse(BaseModel):
 @log_router.post("/", response_model=LogDTO)
 async def create_log_endpoint(
     body: LogCreateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     log_service: LogService = Depends(get_log_service),
 ):
@@ -80,7 +80,7 @@ def get_all_logs_endpoint(
     date_to: int | None = Query(None, description="Unix timestamp for end date"),
     hours_min: float | None = Query(None, description="Minimum hours spent"),
     hours_max: float | None = Query(None, description="Maximum hours spent"),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     log_service: LogService = Depends(get_log_service),
 ):
@@ -126,7 +126,7 @@ def get_all_logs_endpoint(
 
 @log_router.get("/export", response_class=StreamingResponse)
 def export_logs_csv(
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_admin),
     log_service: LogService = Depends(get_log_service),
 ):
@@ -145,7 +145,7 @@ def export_logs_csv(
 @log_router.get("/{log_id}", response_model=LogDTO)
 def get_log_endpoint(
     log_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     log_service: LogService = Depends(get_log_service),
 ):
@@ -166,7 +166,7 @@ def get_log_endpoint(
 async def update_log_endpoint(
     log_id: str,
     body: LogUpdateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     log_service: LogService = Depends(get_log_service),
 ):
@@ -193,7 +193,7 @@ async def update_log_endpoint(
 @log_router.delete("/{log_id}", status_code=204)
 async def delete_log_endpoint(
     log_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     log_service: LogService = Depends(get_log_service),
 ):

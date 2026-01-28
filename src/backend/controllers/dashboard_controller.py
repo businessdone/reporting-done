@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from backend.services import ProjectService, TaskService, LogService
 from backend.types.pagination import PaginationParams
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies import (
     get_session,
     get_current_user,
@@ -28,7 +28,7 @@ class DashboardSummaryResponse(BaseModel):
 
 @dashboard_router.get("/api/dashboard/summary", response_model=DashboardSummaryResponse)
 async def get_dashboard_summary(
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
     project_service: ProjectService = Depends(get_project_service),
     task_service: TaskService = Depends(get_task_service),

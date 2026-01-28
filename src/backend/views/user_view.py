@@ -15,11 +15,11 @@ from backend.models.models import LogResponseModel, TaskResponseModel
 from backend.utils.pagination import calculate_pagination
 from core.models.project_user import ProjectUser
 from backend.models.pagination import Pagination
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from database.repositories.repository import Repository
 
 
-def create_user(user: UserCreateModel, session: ISession) -> UserResponseModel:
+def create_user(user: UserCreateModel, session: AsyncSession) -> UserResponseModel:
     """
     Create a new user in the database.
 
@@ -64,7 +64,7 @@ def create_user(user: UserCreateModel, session: ISession) -> UserResponseModel:
 
 
 def authenticate_user(
-    email: str, password: str, session: ISession
+    email: str, password: str, session: AsyncSession
 ) -> Optional[User]:
     with session as s:
         repository = Repository(s, User)
@@ -80,7 +80,7 @@ def authenticate_user(
             return None
 
 
-def get_user(session: ISession, **kwargs) -> UserResponseModel:
+def get_user(session: AsyncSession, **kwargs) -> UserResponseModel:
     """
     Retrieve a single user from the database based on provided criteria.
 
@@ -107,7 +107,7 @@ def get_user(session: ISession, **kwargs) -> UserResponseModel:
 
 
 def update_user(
-    user_id: str, user_update_data: UserProfileUpdateModel, session: ISession
+    user_id: str, user_update_data: UserProfileUpdateModel, session: AsyncSession
 ) -> UserResponseModel:
     """
     Update an existing user's profile information (name, last_name, email).
@@ -160,7 +160,7 @@ def update_user(
     return UserResponseModel.model_validate(existing_user.to_dict())
 
 
-def upsert_user(user: UserCreateModel, session: ISession) -> UserResponseModel:
+def upsert_user(user: UserCreateModel, session: AsyncSession) -> UserResponseModel:
     """
     Insert a new user or update an existing user based on unique constraints.
 
@@ -215,7 +215,7 @@ def upsert_user(user: UserCreateModel, session: ISession) -> UserResponseModel:
 
 
 def get_all_users(
-    session: ISession, pagination: Pagination, **kwargs
+    session: AsyncSession, pagination: Pagination, **kwargs
 ) -> Tuple[List[UserResponseModel], Pagination]:
     with session as s:
         repository = Repository(s, User)
@@ -249,7 +249,7 @@ def get_all_users(
 
 
 def get_user_tasks(
-    session: ISession, user_id: str, pagination: Pagination
+    session: AsyncSession, user_id: str, pagination: Pagination
 ) -> Tuple[List[TaskResponseModel], Pagination]:
     """
     Retrieve all tasks associated with a user.
@@ -294,7 +294,7 @@ def get_user_tasks(
 
 
 def get_project_by_user(
-    session: ISession, user_id: str, pagination: Pagination, **kwargs
+    session: AsyncSession, user_id: str, pagination: Pagination, **kwargs
 ) -> Tuple[List[ProjectResponseModel], Pagination]:
     """
     Retrieve paginated projects associated with a user.
@@ -357,7 +357,7 @@ def get_project_by_user(
 
 
 def get_user_logs(
-    session: ISession, user_id: str, pagination: Pagination, **kwargs
+    session: AsyncSession, user_id: str, pagination: Pagination, **kwargs
 ) -> Tuple[List[LogResponseModel], Pagination]:
     with session as s:
         repo = Repository(s, Log)

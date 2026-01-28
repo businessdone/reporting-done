@@ -9,7 +9,7 @@ from backend.types.result import Result, Ok, Err
 from backend.types.pagination import PaginationParams, PaginatedResult
 from backend.types.dtos import LogCreateDTO, LogUpdateDTO, LogDTO
 from backend.services.pagination_service import PaginationService
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User, Task, Log
 from core.enums.task_status import TaskStatus
 from database.repositories.repository import Repository
@@ -25,7 +25,7 @@ class LogService:
         self,
         data: LogCreateDTO,
         user_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[LogDTO, str]:
         with session as s:
             task_repo = Repository(s, Task)
@@ -73,7 +73,7 @@ class LogService:
     def get_by_id(
         self,
         log_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[LogDTO, str]:
         with session as s:
             repo = Repository(s, Log)
@@ -90,7 +90,7 @@ class LogService:
         data: LogUpdateDTO,
         user_id: str,
         is_admin: bool,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[LogDTO, str]:
         with session as s:
             repo = Repository(s, Log)
@@ -134,7 +134,7 @@ class LogService:
         log_id: str,
         user_id: str,
         is_admin: bool,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[None, str]:
         with session as s:
             repo = Repository(s, Log)
@@ -162,7 +162,7 @@ class LogService:
     def list_all(
         self,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[LogDTO]:
         with session as s:
@@ -188,7 +188,7 @@ class LogService:
         self,
         user_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[LogDTO]:
         combined_filters = {**filters, "user_id": user_id}
@@ -196,7 +196,7 @@ class LogService:
     
     def export_to_csv(
         self,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> Result[bytes, str]:
         with session as s:

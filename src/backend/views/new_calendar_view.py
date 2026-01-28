@@ -3,7 +3,7 @@ import calendar
 from datetime import date, datetime, timedelta
 
 from core.models import Task, User, OfficeAvailability
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.models.calendar_page import (
     PydanticBackendTask,
     PydanticBackendDailyAvailability,
@@ -13,7 +13,7 @@ from database.repositories.repository import Repository
 
 
 def get_new_calendar_data_for_user(
-    session: ISession,
+    session: AsyncSession,
     user_id: str,
     year: int,
     month: int,

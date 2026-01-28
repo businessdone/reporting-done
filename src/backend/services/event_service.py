@@ -7,7 +7,7 @@ from backend.types.result import Result, Ok, Err
 from backend.types.pagination import PaginationParams, PaginatedResult
 from backend.types.dtos import EventCreateDTO, EventUpdateDTO, EventDTO
 from backend.services.pagination_service import PaginationService
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import Event
 from database.repositories.repository import Repository
 
@@ -22,7 +22,7 @@ class EventService:
         self,
         data: EventCreateDTO,
         user_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[EventDTO, str]:
         with session as s:
             repo = Repository(s, Event)
@@ -52,7 +52,7 @@ class EventService:
     def get_by_id(
         self,
         event_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[EventDTO, str]:
         with session as s:
             repo = Repository(s, Event)
@@ -69,7 +69,7 @@ class EventService:
         data: EventUpdateDTO,
         user_id: str,
         is_admin: bool,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[EventDTO, str]:
         with session as s:
             repo = Repository(s, Event)
@@ -105,7 +105,7 @@ class EventService:
         event_id: str,
         user_id: str,
         is_admin: bool,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[None, str]:
         with session as s:
             repo = Repository(s, Event)
@@ -125,7 +125,7 @@ class EventService:
     def list_all(
         self,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[EventDTO]:
         with session as s:
@@ -151,7 +151,7 @@ class EventService:
         self,
         user_id: str,
         pagination: PaginationParams,
-        session: ISession,
+        session: AsyncSession,
         **filters: Any,
     ) -> PaginatedResult[EventDTO]:
         combined_filters = {**filters, "user_id": user_id}
@@ -162,7 +162,7 @@ class EventService:
         user_id: str,
         year: int,
         month: int,
-        session: ISession,
+        session: AsyncSession,
     ) -> list[EventDTO]:
         with session as s:
             repo = Repository(s, Event)

@@ -7,11 +7,11 @@ from database.models import task_mapper  # noqa F401
 from backend.models.models import LogResponseModel
 from backend.utils.pagination import calculate_pagination
 from backend.models.pagination import Pagination
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from database.repositories.repository import Repository
 
 
-def create_task(task: TaskCreateModel, session: ISession) -> TaskResponseModel:
+def create_task(task: TaskCreateModel, session: AsyncSession) -> TaskResponseModel:
     """
     Create a new task in the database.
     """
@@ -49,7 +49,7 @@ def create_task(task: TaskCreateModel, session: ISession) -> TaskResponseModel:
     return TaskResponseModel.model_validate(task_data)
 
 
-def get_task(session: ISession, **kwargs) -> TaskResponseModel:
+def get_task(session: AsyncSession, **kwargs) -> TaskResponseModel:
     """
     Retrieve a single task from the database based on provided criteria.
     """
@@ -68,7 +68,7 @@ def get_task(session: ISession, **kwargs) -> TaskResponseModel:
 
 
 def update_task(
-    task_id: str, task_update: TaskCreateModel, session: ISession
+    task_id: str, task_update: TaskCreateModel, session: AsyncSession
 ) -> TaskResponseModel:
     """
     Update an existing task's information.
@@ -88,7 +88,7 @@ def update_task(
 
 
 def upsert_task(
-    task: TaskResponseModel, session: ISession
+    task: TaskResponseModel, session: AsyncSession
 ) -> TaskResponseModel:
     """
     Insert a new task or update an existing task based on unique constraints.
@@ -123,7 +123,7 @@ def upsert_task(
 
 
 def get_all_tasks(
-    session: ISession, pagination: Pagination, **kwargs
+    session: AsyncSession, pagination: Pagination, **kwargs
 ) -> Tuple[List[TaskResponseModel], Pagination]:
     with session as s:
         repo = Repository(s, Task)
@@ -157,7 +157,7 @@ def get_all_tasks(
 
 
 def get_project_tasks(
-    session: ISession, project_id: str, pagination: Pagination, **kwargs
+    session: AsyncSession, project_id: str, pagination: Pagination, **kwargs
 ) -> Tuple[List[TaskResponseModel], Pagination]:
     with session as s:
         repo = Repository(s, Task)
@@ -193,7 +193,7 @@ def get_project_tasks(
 
 
 def get_user_tasks(
-    session: ISession, user_id: str, pagination: Pagination, **kwargs
+    session: AsyncSession, user_id: str, pagination: Pagination, **kwargs
 ) -> Tuple[List[TaskResponseModel], Pagination]:
     with session as s:
         repo = Repository(s, Task)
@@ -229,7 +229,7 @@ def get_user_tasks(
 
 
 def get_task_logs(
-    session: ISession, task_id: str, pagination: Pagination, **kwargs
+    session: AsyncSession, task_id: str, pagination: Pagination, **kwargs
 ) -> Tuple[List[LogResponseModel], Pagination]:
     with session as s:
         repo = Repository(s, Log)

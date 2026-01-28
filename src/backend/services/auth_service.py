@@ -5,7 +5,7 @@ from backend.types.result import Result, Ok, Err
 from backend.types.auth import AuthCredentials, AuthenticatedUser
 from backend.types.identifiers import UserId
 from backend.exceptions import InvalidCredentialsError
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User
 from core.enums import Permissions
 from database.repositories.repository import Repository
@@ -20,7 +20,7 @@ class AuthService:
     def authenticate(
         self,
         credentials: AuthCredentials,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[AuthenticatedUser, str]:
         with session as s:
             repo = Repository(s, User)
@@ -47,7 +47,7 @@ class AuthService:
     def get_user_by_id(
         self,
         user_id: str,
-        session: ISession,
+        session: AsyncSession,
     ) -> Result[AuthenticatedUser, str]:
         with session as s:
             repo = Repository(s, User)

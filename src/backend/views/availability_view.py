@@ -3,7 +3,7 @@ import calendar
 from datetime import date, timedelta
 
 from core.models import Task, User, OfficeAvailability
-from database.interfaces.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.models.calendar_page import (
     PydanticBackendTask,
     PydanticBackendDailyAvailability,
@@ -13,7 +13,7 @@ from database.repositories.repository import Repository
 
 
 def get_user_availability_data(
-    session: ISession, user_id: str, year: int, month: int
+    session: AsyncSession, user_id: str, year: int, month: int
 ) -> PydanticBackendUserCalendarResponse:
     user_repo = Repository(session, User)
     user = user_repo.get(user_id)
@@ -84,7 +84,7 @@ def get_user_availability_data(
 
 
 def update_single_day_availability(
-    session: ISession,
+    session: AsyncSession,
     user_id: str,
     day_str: str,
     status: str,
@@ -174,7 +174,7 @@ def update_single_day_availability(
 
 
 def batch_update_monthly_availability(
-    session: ISession,
+    session: AsyncSession,
     user_id: str,
     year: int,
     month: int,

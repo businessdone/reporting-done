@@ -8,7 +8,7 @@ from backend.services.pagination_service import PaginationService
 from backend.types.dtos import EventDTO, EventCreateDTO, EventUpdateDTO
 from backend.types.pagination import PaginationParams
 from backend.types.result import Err
-from backend.protocols.session import ISession
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.dependencies import (
     get_session,
     get_current_user,
@@ -70,7 +70,7 @@ class PaginatedEventResponse(BaseModel):
 @event_router.post("/", response_model=EventDTO)
 async def create_event_endpoint(
     body: EventCreateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     dto = EventCreateDTO(
@@ -95,7 +95,7 @@ def get_all_events_endpoint(
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
     event_type: str | None = Query(None),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     pagination = PaginationParams(page=page, per_page=limit)
@@ -125,7 +125,7 @@ def get_my_events_endpoint(
     limit: int = Query(25, ge=1, le=100),
     year: int | None = Query(None, ge=2000, le=2100),
     month: int | None = Query(None, ge=1, le=12),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     pagination = PaginationParams(page=page, per_page=limit)
@@ -162,7 +162,7 @@ def get_user_events_endpoint(
     limit: int = Query(25, ge=1, le=100),
     year: int | None = Query(None, ge=2000, le=2100),
     month: int | None = Query(None, ge=1, le=12),
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     with session as s:
@@ -197,7 +197,7 @@ def get_user_events_endpoint(
 @event_router.get("/{event_id}", response_model=EventDTO)
 def get_event_endpoint(
     event_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     result = _event_service.get_by_id(event_id, session)
@@ -217,7 +217,7 @@ def get_event_endpoint(
 async def update_event_endpoint(
     event_id: str,
     body: EventUpdateRequest,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     dto = EventUpdateDTO(
@@ -246,7 +246,7 @@ async def update_event_endpoint(
 @event_router.delete("/{event_id}", status_code=204)
 async def delete_event_endpoint(
     event_id: str,
-    session: ISession = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     result = _event_service.delete(
