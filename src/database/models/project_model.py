@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from core.models.project import Project
+from core.models import Project
 from database.models.mapper import mapper_registry
 
 project_table = Table(

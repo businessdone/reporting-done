@@ -11,7 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from core.enums import Roles
-from core.models.user import User
+from core.models import User
 from database.models.mapper import mapper_registry
 
 user_table = Table(

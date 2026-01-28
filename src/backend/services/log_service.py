@@ -10,9 +10,7 @@ from backend.types.pagination import PaginationParams, PaginatedResult
 from backend.types.dtos import LogCreateDTO, LogUpdateDTO, LogDTO
 from backend.services.pagination_service import PaginationService
 from database.interfaces.session import ISession
-from core.models.user import User
-from core.models.task import Task
-from core.models.log import Log
+from core.models import User, Task, Log
 from core.enums.task_status import TaskStatus
 from database.repositories.repository import Repository
 

@@ -15,7 +15,7 @@ from backend.dependencies import (
     is_admin,
     get_project_service,
 )
-from core.models.user import User
+from core.models import User
 
 
 project_router = APIRouter(prefix="/project")

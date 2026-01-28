@@ -2,15 +2,13 @@ from typing import Set, Dict, List, Optional
 import calendar
 from datetime import date, timedelta
 
-from core.models.task import Task
-from core.models.user import User
+from core.models import Task, User, OfficeAvailability
 from database.interfaces.session import ISession
 from backend.models.calendar_page import (
     PydanticBackendTask,
     PydanticBackendDailyAvailability,
     PydanticBackendUserCalendarResponse,
 )
-from core.models.office_availability import OfficeAvailability
 from database.repositories.repository import Repository
 
 

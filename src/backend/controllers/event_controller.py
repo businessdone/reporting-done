@@ -14,7 +14,7 @@ from backend.dependencies import (
     get_current_user,
     is_admin,
 )
-from core.models.user import User
+from core.models import User
 from core.models.project_user import ProjectUser
 from database.repositories.repository import Repository
 

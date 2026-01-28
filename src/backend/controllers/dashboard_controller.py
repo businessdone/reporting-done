@@ -12,7 +12,7 @@ from backend.dependencies import (
     get_task_service,
     get_log_service,
 )
-from core.models.user import User
+from core.models import User
 from core.enums.task_status import TaskStatus
 
 

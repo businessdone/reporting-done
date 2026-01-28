@@ -16,8 +16,7 @@ from backend.dependencies import (
     get_availability_service,
 )
 from backend.utils.xlsx_parser import FileParser, IFileParser
-from core.models.user import User
-from core.models.office_availability import OfficeAvailability
+from core.models import User, OfficeAvailability
 from database.repositories.repository import Repository
 
 

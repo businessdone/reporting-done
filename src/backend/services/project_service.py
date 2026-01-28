@@ -2,8 +2,7 @@ from typing import Any
 
 from ulid import ULID
 
-from core.models.task import Task
-from core.models.user import User
+from core.models import Task, User, Project
 from backend.types.dtos import (
     TaskDTO,
     UserDTO,
@@ -11,7 +10,6 @@ from backend.types.dtos import (
     ProjectCreateDTO,
     ProjectUpdateDTO,
 )
-from core.models.project import Project
 from backend.types.result import Ok, Err, Result
 from backend.types.pagination import PaginatedResult, PaginationParams
 from core.models.project_user import ProjectUser

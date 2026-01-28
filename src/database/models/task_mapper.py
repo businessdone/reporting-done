@@ -10,8 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.sql import func, select
 
-from core.models.log import Log
-from core.models.task import Task
+from core.models import Log, Task
 from database.models.mapper import mapper_registry
 
 task_table = Table(

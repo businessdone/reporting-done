@@ -17,10 +17,7 @@ from backend.types.identifiers import UserId
 from backend.services.auth_service import AuthService
 from backend.services.pagination_service import PaginationService
 from database.interfaces.session import ISession
-from core.models.user import User
-from core.models.task import Task
-from core.models.log import Log
-from core.models.project import Project
+from core.models import User, Task, Log, Project
 from core.models.project_user import ProjectUser
 from database.repositories.repository import Repository
 

@@ -5,11 +5,8 @@ from ulid import ULID
 from loguru import logger
 
 from backend.models import LogCreateModel, LogResponseModel
-from core.models.log import Log
+from core.models import Log, Task, User, Project
 from database.models import log_mapper  # noqa F401
-from core.models.task import Task
-from core.models.user import User
-from core.models.project import Project
 from core.enums.task_status import TaskStatus
 from backend.utils.templates import templates
 from backend.utils.pagination import calculate_pagination

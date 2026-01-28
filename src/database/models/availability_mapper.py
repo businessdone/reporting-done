@@ -1,7 +1,7 @@
 from sqlalchemy import Date, Table, Column, String, Boolean, ForeignKey
 
 from database.models.mapper import mapper_registry
-from core.models.office_availability import OfficeAvailability
+from core.models import OfficeAvailability
 
 office_availability_table = Table(
     "office_availability",

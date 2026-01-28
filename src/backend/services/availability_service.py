@@ -5,8 +5,7 @@ import calendar
 from backend.types.result import Result, Ok, Err
 from backend.types.dtos import AvailabilityDTO, MonthlyAvailabilityDTO, UserDTO, DayAvailabilityStatus
 from backend.protocols.session import ISession
-from core.models.user import User
-from core.models.office_availability import OfficeAvailability
+from core.models import User, OfficeAvailability
 from database.repositories.repository import Repository
 
 

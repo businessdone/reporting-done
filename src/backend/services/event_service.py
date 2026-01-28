@@ -8,7 +8,7 @@ from backend.types.pagination import PaginationParams, PaginatedResult
 from backend.types.dtos import EventCreateDTO, EventUpdateDTO, EventDTO
 from backend.services.pagination_service import PaginationService
 from database.interfaces.session import ISession
-from core.models.event import Event
+from core.models import Event
 from database.repositories.repository import Repository
 
 

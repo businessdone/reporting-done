@@ -2,8 +2,7 @@ from typing import List
 import calendar
 from datetime import date, datetime, timedelta
 
-from core.models.task import Task
-from core.models.user import User
+from core.models import Task, User, OfficeAvailability
 from database.interfaces.session import ISession
 from backend.models.calendar_page import (
     PydanticBackendTask,
@@ -11,7 +10,6 @@ from backend.models.calendar_page import (
     PydanticBackendUserCalendarResponse,
 )
 from database.repositories.repository import Repository
-from core.models.office_availability import OfficeAvailability
 
 
 def get_new_calendar_data_for_user(

@@ -9,11 +9,8 @@ from backend.models import (
     ProjectResponseModel,
     UserProfileUpdateModel,
 )
-from core.models.log import Log
+from core.models import Log, Task, User, Project
 from database.models import user_table  # noqa F401 - Import to register User mapping
-from core.models.task import Task
-from core.models.user import User
-from core.models.project import Project
 from backend.models.models import LogResponseModel, TaskResponseModel
 from backend.utils.pagination import calculate_pagination
 from core.models.project_user import ProjectUser

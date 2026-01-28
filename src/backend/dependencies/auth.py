@@ -1,7 +1,7 @@
 from fastapi import Depends, Request, HTTPException
 from fastapi.responses import RedirectResponse
 
-from core.models.user import User
+from core.models import User
 from core.enums import Permissions
 from backend.protocols.session import ISession
 from backend.dependencies.db_session import get_session

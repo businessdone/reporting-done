@@ -5,9 +5,7 @@ from loguru import logger
 
 from backend.models import ProjectCreateModel, ProjectResponseModel
 import database.models.project_mapper  # noqa: F401
-from core.models.task import Task
-from core.models.user import User
-from core.models.project import Project
+from core.models import Task, User, Project
 from backend.models.models import TaskResponseModel, UserResponseModel
 from backend.utils.pagination import calculate_pagination
 from core.models.project_user import ProjectUser

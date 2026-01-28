@@ -1,7 +1,7 @@
 from sqlalchemy import DateTime, Float, Table, Column, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from core.models.log import Log
+from core.models import Log
 from database.models.mapper import mapper_registry
 
 task_log_table = Table(

@@ -16,7 +16,7 @@ from backend.dependencies import (
     is_admin,
     get_log_service,
 )
-from core.models.user import User
+from core.models import User
 
 
 log_router = APIRouter(prefix="/log")

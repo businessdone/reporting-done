@@ -1,7 +1,7 @@
 from sqlalchemy import Date, DateTime, Table, Column, String, Time, ForeignKey
 from sqlalchemy.orm import relationship
 
-from core.models.event import Event
+from core.models import Event
 from database.models.mapper import mapper_registry
 
 event_table = Table(

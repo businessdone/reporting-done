@@ -7,7 +7,7 @@ from pydantic import Field, BaseModel
 from fastapi.responses import StreamingResponse
 
 from backend.services import TaskService
-from core.models.user import User
+from core.models import User
 from backend.types.dtos import LogDTO, TaskDTO, TaskCreateDTO, TaskUpdateDTO
 from backend.dependencies import (
     is_admin,

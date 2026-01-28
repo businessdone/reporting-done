@@ -11,7 +11,7 @@ from sqlalchemy.orm import relationship
 
 from database.models.mapper import mapper_registry
 from database.models.user_model import user_table
-from core.models.organization import Organization
+from core.models import Organization
 
 organization_table = Table(
     "organizations",

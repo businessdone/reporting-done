@@ -15,9 +15,8 @@ from backend.dependencies import (
     is_admin,
     get_availability_service,
 )
-from core.models.user import User
+from core.models import User, OfficeAvailability
 from core.models.project_user import ProjectUser
-from core.models.office_availability import OfficeAvailability
 from database.repositories.repository import Repository
 
 

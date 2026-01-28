@@ -8,7 +8,7 @@ from backend.dependencies.auth import validate_csrf, get_current_user_optional
 from backend.protocols.session import ISession
 from backend.types.auth import AuthenticatedUser
 from backend.types.result import Ok, Err
-from core.models.user import User
+from core.models import User
 
 
 auth_router = APIRouter(prefix="/auth")
