@@ -4,7 +4,8 @@ Uses bd-core's Organization model and organization_table, adding
 reports-specific relationships via configure_organization_mapping().
 """
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import class_mapper, relationship
+from sqlalchemy.orm.exc import UnmappedClassError
 
 from businessdone_core.database.models import Organization
 from businessdone_core.database.models.organization import organization_table
@@ -19,7 +20,15 @@ def configure_organization_mapping() -> None:
     all relationships needed by reports-system:
     - users: Users belonging to this organization (shared)
     - projects: Projects in this organization (shared)
+
+    This function is idempotent - calling it multiple times is safe.
     """
+    try:
+        class_mapper(Organization)
+        return  # Already mapped, skip
+    except UnmappedClassError:
+        pass  # Not mapped, proceed
+
     mapper_registry.map_imperatively(
         Organization,
         organization_table,

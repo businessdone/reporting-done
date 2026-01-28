@@ -4,7 +4,8 @@ Uses bd-core's Project model and project_table, adding reports-specific
 relationships (tasks) via configure_project_mapping().
 """
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import class_mapper, relationship
+from sqlalchemy.orm.exc import UnmappedClassError
 
 from businessdone_core.database.models import Project
 from businessdone_core.database.models.project import project_members_table, project_table
@@ -25,7 +26,15 @@ def configure_project_mapping() -> None:
     - child_projects: Child sub-projects (shared)
     - members: Users who are members of this project (shared)
     - tasks: Tasks in this project (reports-specific)
+
+    This function is idempotent - calling it multiple times is safe.
     """
+    try:
+        class_mapper(Project)
+        return  # Already mapped, skip
+    except UnmappedClassError:
+        pass  # Not mapped, proceed
+
     mapper_registry.map_imperatively(
         Project,
         project_table,

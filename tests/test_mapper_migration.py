@@ -65,3 +65,47 @@ def test_table_sets_documented() -> None:
     # Reports-specific tables
     expected_reports = {"tasks", "task_logs", "events", "office_availability"}
     assert REPORTS_TABLES == expected_reports
+
+
+def test_configure_mappings_idempotent() -> None:
+    """Verify configure_mappings() can be called multiple times safely."""
+    from database.models import configure_mappings
+
+    # Should not raise on multiple calls
+    configure_mappings()
+    configure_mappings()
+    configure_mappings()  # Third call to be thorough
+
+
+def test_mapped_classes_have_relationships() -> None:
+    """Verify relationships are properly configured after mapping."""
+    from database.models import configure_mappings
+    from core.models import User, Organization, Project
+    from sqlalchemy.orm import class_mapper
+
+    configure_mappings()
+
+    # Verify User has expected relationships
+    user_mapper = class_mapper(User)
+    user_rel_names = {r.key for r in user_mapper.relationships}
+    assert "organization" in user_rel_names
+    assert "projects" in user_rel_names
+    assert "tasks" in user_rel_names
+    assert "task_logs" in user_rel_names
+    assert "project_memberships" in user_rel_names
+
+    # Verify Organization has expected relationships
+    org_mapper = class_mapper(Organization)
+    org_rel_names = {r.key for r in org_mapper.relationships}
+    assert "users" in org_rel_names
+    assert "projects" in org_rel_names
+
+    # Verify Project has expected relationships
+    project_mapper = class_mapper(Project)
+    project_rel_names = {r.key for r in project_mapper.relationships}
+    assert "organization" in project_rel_names
+    assert "user" in project_rel_names
+    assert "tasks" in project_rel_names
+    assert "members" in project_rel_names
+    assert "parent_project" in project_rel_names
+    assert "child_projects" in project_rel_names

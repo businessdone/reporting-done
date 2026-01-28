@@ -4,7 +4,8 @@ Uses bd-core's User model and user_table, adding reports-specific
 relationships (tasks, task_logs) via configure_user_mapping().
 """
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import class_mapper, relationship
+from sqlalchemy.orm.exc import UnmappedClassError
 
 from businessdone_core.database.models import User
 from businessdone_core.database.models.user import user_table
@@ -21,7 +22,15 @@ def configure_user_mapping() -> None:
     - project_memberships: Projects the user is a member of (shared)
     - tasks: Tasks assigned to the user (reports-specific)
     - task_logs: Log entries created by the user (reports-specific)
+
+    This function is idempotent - calling it multiple times is safe.
     """
+    try:
+        class_mapper(User)
+        return  # Already mapped, skip
+    except UnmappedClassError:
+        pass  # Not mapped, proceed
+
     mapper_registry.map_imperatively(
         User,
         user_table,

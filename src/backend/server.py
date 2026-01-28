@@ -11,6 +11,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from config.env import ENV
+from database.models import configure_mappings
 from backend.views.log_view import get_projects_with_recent_logs
 from backend.controllers.log_controller import log_router
 from backend.controllers.auth_controller import auth_router
@@ -44,8 +45,12 @@ async def scheduled_get_projects_with_recent_logs() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Configure ORM mappings for bd-core models with reports-specific relationships
+    configure_mappings()
+    logger.info("ORM mappings configured.")
+
     trigger = CronTrigger(hour=23, minute=57)
-    
+
     scheduler.add_job(
         scheduled_get_projects_with_recent_logs,
         trigger,
@@ -53,12 +58,12 @@ async def lifespan(app: FastAPI):
         name="Daily Project Logs Retrieval and Email Sending",
         replace_existing=True,
     )
-    
+
     scheduler.start()
     logger.info("APScheduler started and job added.")
-    
+
     yield
-    
+
     scheduler.shutdown()
 
 
