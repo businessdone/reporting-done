@@ -40,7 +40,7 @@ def create_log(log: LogCreateModel, session: AsyncSession) -> LogResponseModel:
 
         new_log = Log(
             id=log.id,
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             task_id=log.task_id,
             task_name=task.title,
             description=log.description,
@@ -133,7 +133,7 @@ def upsert_log(log: LogResponseModel, session: AsyncSession) -> LogResponseModel
         else:
             new_log = Log(
                 id=log.id or str(ULID()),
-                created_at=log.created_at or datetime.now(),
+                created_at=log.created_at or datetime.now(UTC),
                 task_id=log.task_id,
                 task_name=log.task_name,
                 description=log.description,

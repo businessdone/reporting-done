@@ -1,5 +1,5 @@
 from typing import Any
-from datetime import datetime
+from datetime import datetime, timezone
 from io import StringIO
 import csv
 
@@ -47,12 +47,12 @@ class LogService:
 
         task.hours_worked += data.hours_spent
         task.status = data.task_status
-        task.updated_at = datetime.now()
+        task.updated_at = datetime.now(timezone.utc)
         await task_repo.update(task)
 
         new_log = Log(
             id=str(ULID()),
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             task_id=task.id,
             task_name=task.title,
             description=data.description,

@@ -184,8 +184,6 @@ async def export_tasks_csv(
     current_user: User = Depends(require_admin),
     task_service: TaskService = Depends(get_task_service),
 ):
-    from datetime import datetime
-
     pagination = PaginationParams(page=1, per_page=10000)
     result = await task_service.list_all(pagination, session)
 
@@ -215,9 +213,7 @@ async def export_tasks_csv(
                 task.status or "",
                 task.hours_required,
                 task.hours_worked,
-                datetime.fromtimestamp(task.created_at).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                ),
+                task.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             ]
         )
 
