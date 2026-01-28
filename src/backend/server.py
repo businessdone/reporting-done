@@ -6,9 +6,11 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+
+from businessdone_core.database import PGSQLClient
+from businessdone_core.auth import create_session_middleware
 
 from config.env import ENV
 from database.models import configure_mappings
@@ -45,6 +47,19 @@ async def scheduled_get_projects_with_recent_logs() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Application lifespan handler."""
+    # Initialize database client using bd-core's PGSQLClient
+    app.state.db = PGSQLClient(
+        db_user=ENV.DB_USER,
+        db_password=ENV.DB_PASSWORD,
+        db_host=ENV.DB_HOST,
+        db_port=ENV.DB_PORT,
+        db_name=ENV.DB_NAME,
+    )
+    logger.info(
+        f"Database client initialized for {ENV.DB_NAME} at {ENV.DB_HOST}:{ENV.DB_PORT}"
+    )
+
     # Configure ORM mappings for bd-core models with reports-specific relationships
     configure_mappings()
     logger.info("ORM mappings configured.")
@@ -64,7 +79,10 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    # Cleanup
     scheduler.shutdown()
+    await app.state.db.close()
+    logger.info("Database client closed.")
 
 
 app = FastAPI(
@@ -145,13 +163,14 @@ app.add_middleware(LogRequestMiddleware)
 app.add_middleware(AuthCheckMiddleware)
 app.add_middleware(CSRFMiddleware)
 
-app.add_middleware(
-    SessionMiddleware,
+# Use bd-core's session middleware factory
+middleware_class, kwargs = create_session_middleware(
     secret_key=ENV.SECRET_KEY,
-    max_age=60 * 60 * 24 * 365 * 10,
+    max_age=60 * 60 * 24 * 365 * 10,  # 10 years
     same_site="lax",
     https_only=ENV.ENV == "prod",
 )
+app.add_middleware(middleware_class, **kwargs)
 
 origins = [ENV.API_URL]
 
