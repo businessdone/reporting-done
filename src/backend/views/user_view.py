@@ -1,7 +1,6 @@
 from typing import List, Tuple, Optional
 
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from businessdone_core.auth import hash_password, verify_password
 
 from backend.models import (
     UserCreateModel,
@@ -36,8 +35,7 @@ def create_user(user: UserCreateModel, session: AsyncSession) -> UserResponseMod
     """
     from core.enums import Roles, SubscriptionTier, get_ocr_page_limit
 
-    ph = PasswordHasher()
-    hashed_password = ph.hash(user.password)
+    hashed_password = hash_password(user.password)
 
     # Split full_name into name and last_name
     name_parts = user.full_name.split(" ", 1)
@@ -72,12 +70,9 @@ def authenticate_user(
         if not users:
             return None
         user = users[0]
-        ph = PasswordHasher()
-        try:
-            ph.verify(user.password, password)
+        if verify_password(user.password, password):
             return user
-        except VerifyMismatchError:
-            return None
+        return None
 
 
 def get_user(session: AsyncSession, **kwargs) -> UserResponseModel:

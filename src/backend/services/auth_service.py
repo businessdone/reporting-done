@@ -1,21 +1,16 @@
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from businessdone_core.auth import hash_password, verify_password
+from businessdone_core.database import Repository
+from core.models import User
+from core.enums import Permissions
 from backend.types.result import Result, Ok, Err
 from backend.types.auth import AuthCredentials, AuthenticatedUser
 from backend.types.identifiers import UserId
-from backend.exceptions import InvalidCredentialsError
-from sqlalchemy.ext.asyncio import AsyncSession
-from core.models import User
-from core.enums import Permissions
-from businessdone_core.database import Repository
 
 
 class AuthService:
-    __slots__ = ("_hasher",)
-
-    def __init__(self) -> None:
-        self._hasher = PasswordHasher()
+    __slots__ = ()
 
     async def authenticate(
         self,
@@ -30,7 +25,7 @@ class AuthService:
 
         user = users[0]
 
-        if not self.verify_password(credentials.password, user.password):
+        if not verify_password(user.password, credentials.password):
             return Err("Invalid email or password")
 
         is_admin = Permissions(user.permissions) == Permissions.ADMIN
@@ -65,14 +60,4 @@ class AuthService:
         ))
 
     def hash_password(self, password: str) -> str:
-        return self._hasher.hash(password)
-
-    def verify_password(self, password: str, hashed: str) -> bool:
-        try:
-            self._hasher.verify(hashed, password)
-            return True
-        except VerifyMismatchError:
-            return False
-
-    def needs_rehash(self, hashed: str) -> bool:
-        return self._hasher.check_needs_rehash(hashed)
+        return hash_password(password)

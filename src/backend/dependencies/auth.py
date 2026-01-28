@@ -1,9 +1,9 @@
 """Authentication dependencies for FastAPI."""
 
 from fastapi import Depends, Request, HTTPException
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from businessdone_core.database import Repository
 from core.models import User
 from core.enums import Permissions
 from backend.dependencies.db_session import get_db_session
@@ -13,15 +13,14 @@ async def get_current_user(
     request: Request,
     session: AsyncSession = Depends(get_db_session),
 ) -> User:
-    """Get the currently authenticated user."""
+    """Get current authenticated user from session."""
     user_id = request.session.get("user_id")
 
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    stmt = select(User).where(User.id == user_id)
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
+    repo = Repository(session, User)
+    user = await repo.get(user_id)
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
@@ -33,15 +32,14 @@ async def get_current_user_optional(
     request: Request,
     session: AsyncSession = Depends(get_db_session),
 ) -> User | None:
-    """Get the currently authenticated user, or None if not authenticated."""
+    """Get current user if authenticated, None otherwise."""
     user_id = request.session.get("user_id")
 
     if not user_id:
         return None
 
-    stmt = select(User).where(User.id == user_id)
-    result = await session.execute(stmt)
-    return result.scalar_one_or_none()
+    repo = Repository(session, User)
+    return await repo.get(user_id)
 
 
 def is_admin(current_user: User) -> bool:
