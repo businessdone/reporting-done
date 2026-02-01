@@ -5,8 +5,7 @@ description = "Reporting and management system by BusinessDone"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "alembic>=1.14.0",
-    "apscheduler[asyncio]>=3.11.0",
+"apscheduler[asyncio]>=3.11.0",
     "argon2-cffi>=23.1.0",
     "cryptography>=43.0.3",
     "fastapi>=0.115.4",
@@ -97,7 +96,7 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 source = ["./tests"]
-omit = ['*/__init__.py', '*/tests/*', '*/migrations/*', '*/alembic/*', '*/enums/*']
+omit = ['*/__init__.py', '*/tests/*', '*/migrations/*', '*/enums/*']
 
 [tool.coverage.report]
 exclude_lines = [
